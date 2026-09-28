@@ -1,0 +1,17 @@
+{
+  "name": "LocalPDF",
+  "short_name": "LocalPDF",
+  "description": "Privacy-first PDF tools that run 100% in your browser.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0A0C",
+  "theme_color": "#0A0A0C",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
