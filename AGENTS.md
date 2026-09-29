@@ -2,7 +2,7 @@
 
 ## Project context
 
-LocalPDF is a standalone Vite + React SPA. PDF tools run in the browser only; there is no server API or auth layer.
+BolaPDF is a standalone Vite + React SPA. PDF tools run in the browser only; there is no server API or auth layer.
 
 Start with [README.md](README.md) for install, dev, build, and deploy.
 

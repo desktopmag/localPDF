@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Download, RotateCcw, Check, Sparkles, Loader2 } from 'lucide-react';
 import { toolBySlug } from '@/lib/tools';
 import { formatBytes } from '@/lib/pdfUtils';
-import { canHandoffPdfTo, resultToHandoffFile, stageToolHandoff } from '@/lib/toolHandoff';
+import { canHandoffPdfTo, resultToHandoffFile, resultToHandoffFileAsync, stageToolHandoff } from '@/lib/toolHandoff';
 
 const relatedMap = {
   merge: ['split', 'organize', 'extract', 'delete'],
@@ -33,11 +33,21 @@ export default function DownloadResult({ toolSlug, result, onReset, note }) {
   const navigate = useNavigate();
   const handoffFile = resultToHandoffFile(result);
 
-  function continueToTool(slug) {
+  async function continueToTool(slug) {
     const withHandoff = handoffFile && canHandoffPdfTo(slug);
     if (withHandoff) {
-      stageToolHandoff(slug, handoffFile);
-      navigate(`/tools/${slug}`, { state: { fromToolHandoff: slug } });
+      setBusy(true);
+      try {
+        const file = await resultToHandoffFileAsync(result);
+        if (!file) {
+          navigate(`/tools/${slug}`);
+          return;
+        }
+        stageToolHandoff(slug, file);
+        navigate(`/tools/${slug}`, { state: { fromToolHandoff: slug }, replace: true });
+      } finally {
+        setBusy(false);
+      }
       return;
     }
     navigate(`/tools/${slug}`);

@@ -53,7 +53,7 @@ export default function SystemStatus() {
   }
 
   return (
-    <PageShell title="System Status" description="A live diagnostic of the browser capabilities LocalPDF relies on. Everything here is read on your device — nothing is reported anywhere.">
+    <PageShell title="System Status" description="A live diagnostic of the browser capabilities BolaPDF relies on. Everything here is read on your device — nothing is reported anywhere.">
       {!stats ? (
         <p className="font-mono text-xs text-muted-foreground">Probing your browser…</p>
       ) : (

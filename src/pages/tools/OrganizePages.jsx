@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Trash2, Download, Loader2, X } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
+import SelectedFilePreview from '@/components/SelectedFilePreview';
 import ToolShell, { PrimaryButton, ResetButton } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
 import { getPdfjs, renderPageCanvas, formatBytes } from '@/lib/pdfUtils';
@@ -80,10 +81,12 @@ export default function OrganizePages() {
         </div>
       ) : (
         <div className="space-y-5">
-          <div className="flex items-center justify-between rounded-xl border border-border bg-card p-3">
-            <span className="text-sm text-foreground">{file.name}</span>
-            <span className="font-mono text-xs text-muted-foreground">{pages.length} pages · {formatBytes(file.size)}</span>
-          </div>
+          <SelectedFilePreview
+            file={file}
+            onRemove={reset}
+            onFileChange={load}
+            meta={`${pages.length} pages · ${formatBytes(file.size)}`}
+          />
 
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="pages" direction="horizontal">

@@ -6,20 +6,20 @@ export default function PrivacyManifesto() {
   const pillars = [
     { icon: FileLock2, title: 'File API, not network API', body: 'You open a file with the browser File API. Its bytes are read into an in-memory ArrayBuffer. There is no fetch, no XMLHttpRequest, no upload — the file is never serialized over the network.' },
     { icon: Cpu, title: 'Processing on your CPU', body: 'All PDF parsing, rendering, and editing happens in JavaScript running on your device — off the main thread in Web Workers where possible. Your processor does the work, not a server.' },
-    { icon: WifiOff, title: 'No backend, by design', body: 'LocalPDF ships with zero server endpoints. There is nothing to upload to, nothing to store on a remote disk, and nothing to leak. Disconnect your network mid-task and it keeps working.' },
+    { icon: WifiOff, title: 'No backend, by design', body: 'BolaPDF ships with zero server endpoints. There is nothing to upload to, nothing to store on a remote disk, and nothing to leak. Disconnect your network mid-task and it keeps working.' },
     { icon: ShieldOff, title: 'No accounts, no telemetry', body: 'No sign-up, no cookies, no analytics script, no tracking pixels. Nothing about you or your documents is collected because there is nowhere to collect it.' },
   ];
 
   return (
     <PageShell
       title="Privacy Manifesto"
-      description="The technical architecture behind LocalPDF, and a plain-spoken guarantee: every byte is processed locally in your browser."
+      description="The technical architecture behind BolaPDF, and a plain-spoken guarantee: every byte is processed locally in your browser."
     >
       <div className="prose-invert max-w-none">
         <p className="text-base leading-relaxed text-muted-foreground">
           Most online PDF editors follow a simple model: you upload a file, a server processes
           it, and you download the result. That means a copy of your document lives on someone
-          else's machine — often indefinitely. LocalPDF inverts that model entirely.
+          else's machine — often indefinitely. BolaPDF inverts that model entirely.
         </p>
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2">

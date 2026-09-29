@@ -1,15 +1,24 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Cpu, FileLock2, WifiOff, Layers } from 'lucide-react';
+import { Cpu, FileLock2, WifiOff, Layers } from 'lucide-react';
 import { tools } from '@/lib/tools';
 import ConvertToolsSection from '@/components/ConvertToolsSection';
+import Seo from '@/components/Seo';
+import {
+  DEFAULT_DESCRIPTION,
+  DEFAULT_TITLE,
+  SITE_ACRONYM,
+  SITE_ACRONYM_EXPANDED,
+  SITE_NAME,
+  SITE_TAGLINE,
+} from '@/lib/site';
 
 export default function Home() {
   const categories = [...new Set(tools.map((t) => t.category))];
-  const [serverOff] = useState(true);
 
   return (
     <div>
+      <Seo title={DEFAULT_TITLE} description={DEFAULT_DESCRIPTION} path="/" />
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-border">
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -29,37 +38,16 @@ export default function Home() {
         </div>
 
         <div className="relative mx-auto max-w-7xl px-5 py-20 sm:py-28">
-          <div className="glass-refract inline-flex items-center gap-2 rounded-full bg-primary/5 px-3 py-1.5">
-            <span className={`relative flex h-2 w-2 ${serverOff ? '' : 'opacity-30'}`}>
-              <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-            </span>
-            <span className="font-mono text-[10px] uppercase tracking-widest text-primary">
-              Server Connection: Disconnected
-            </span>
-          </div>
-
-          <h1 className="mt-7 max-w-4xl font-display text-5xl font-bold leading-[0.95] tracking-tight text-foreground sm:text-7xl">
+          <p className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-black/[0.04] px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-black dark:bg-primary/5 dark:text-primary">
+            {SITE_NAME} · {SITE_ACRONYM} = {SITE_ACRONYM_EXPANDED}
+          </p>
+          <h1 className="mt-5 max-w-4xl font-display text-5xl font-bold leading-[0.95] tracking-tight text-foreground sm:text-7xl">
             PDF tools that <span className="text-primary">never leave</span> your browser.
           </h1>
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">A privacy-first PDF editor. Every operation runs locally on your device — no uploads, no servers, no tracking. Built for Android, IOS and the modern web.
-
+          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+            {SITE_NAME}: {SITE_TAGLINE} Every operation runs on your device — no uploads, no servers, no tracking.
+            Built for Android, iOS, and the modern web.
           </p>
-
-          <div className="mt-9 flex flex-wrap gap-3">
-            <Link
-              to="/tools/merge"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 font-mono text-xs font-semibold uppercase tracking-widest text-primary-foreground transition-all hover:bg-primary/90">
-              
-              Open a tool <ArrowRight className="h-4 w-4" />
-            </Link>
-            <a
-              href="#tools"
-              className="inline-flex items-center gap-2 rounded-xl border border-border px-5 py-3 font-mono text-xs uppercase tracking-widest text-foreground transition-colors hover:border-primary/40">
-              
-              Browse the arsenal
-            </a>
-          </div>
 
           <div className="mt-12 grid max-w-lg grid-cols-3 gap-3">
             {[
@@ -132,7 +120,7 @@ export default function Home() {
               </h2>
               <p className="mt-5 text-base leading-relaxed text-muted-foreground">
                 Most online PDF editors upload your files to a server, process them remotely,
-                and store copies you can't see. LocalPDF does the opposite. There is no
+                and store copies you can't see. {SITE_NAME} does the opposite. There is no
                 backend — nothing to upload to, nothing to store, nothing to leak.
               </p>
               <p className="mt-4 text-base leading-relaxed text-muted-foreground">

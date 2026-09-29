@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Download, Loader2, FileSearch, X } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
+import SelectedFilePreview from '@/components/SelectedFilePreview';
 import ToolShell, { PrimaryButton, ResetButton, OptionCard } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
 import { formatBytes } from '@/lib/pdfUtils';
@@ -58,12 +59,12 @@ export default function ExtractPages() {
         <FileDropzone onFiles={(f) => onFile(f[0])} accept="application/pdf" label="Drop a PDF to extract pages from" />
       ) : (
         <div className="space-y-5">
-          <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-            <FileSearch className="h-5 w-5 text-accent" />
-            <span className="flex-1 truncate text-sm text-foreground">{file.name}</span>
-            <span className="text-xs text-muted-foreground">{pageCount} pages · {formatBytes(file.size)}</span>
-            <button onClick={() => setFile(null)} className="rounded p-1.5 text-muted-foreground hover:text-destructive"><X className="h-4 w-4" /></button>
-          </div>
+          <SelectedFilePreview
+            file={file}
+            onRemove={() => setFile(null)}
+            onFileChange={onFile}
+            meta={`${pageCount} pages · ${formatBytes(file.size)}`}
+          />
 
           <OptionCard label={`Select pages to extract · ${selected.length} chosen`}>
             <div className="mb-3 flex gap-2">

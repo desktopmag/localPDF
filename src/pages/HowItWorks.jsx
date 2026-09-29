@@ -11,7 +11,7 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <PageShell title="How It Works" description="Every tool in LocalPDF follows the same four-step path — and the network is never part of it.">
+    <PageShell title="How It Works" description="Every tool in BolaPDF follows the same four-step path — and the network is never part of it.">
       <div className="grid gap-4">
         {steps.map((s) => (
           <div key={s.title} className="flex gap-4 rounded-2xl border border-border bg-card p-5">

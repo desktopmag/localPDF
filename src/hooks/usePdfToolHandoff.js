@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { consumeToolHandoff } from '@/lib/toolHandoff';
+import { getToolHandoffFile } from '@/lib/toolHandoff';
 
 /** Apply a PDF staged from "Continue with another tool" when this tool mounts. */
 export function usePdfToolHandoff(toolSlug, onReceive) {
@@ -10,7 +10,7 @@ export function usePdfToolHandoff(toolSlug, onReceive) {
 
   useLayoutEffect(() => {
     if (location.state?.fromToolHandoff !== toolSlug) return;
-    const file = consumeToolHandoff(toolSlug);
+    const file = getToolHandoffFile(toolSlug);
     if (file) onReceiveRef.current(file);
   }, [toolSlug, location.state?.fromToolHandoff]);
 }

@@ -5,19 +5,19 @@ import { ChevronDown } from 'lucide-react';
 const faqs = [
   {
     q: 'Is there a file size limit?',
-    a: 'There is no hard limit imposed by LocalPDF — the limit is your device. Because files are processed in memory, very large PDFs can strain available RAM. For most everyday documents (a few hundred pages, tens of megabytes) a modern phone or laptop handles it fine. Scanned PDFs of hundreds of high-res pages may be slow or fail on low-memory devices.',
+    a: 'There is no hard limit imposed by BolaPDF — the limit is your device. Because files are processed in memory, very large PDFs can strain available RAM. For most everyday documents (a few hundred pages, tens of megabytes) a modern phone or laptop handles it fine. Scanned PDFs of hundreds of high-res pages may be slow or fail on low-memory devices.',
   },
   {
     q: 'Why is it slower than server-based tools for huge files?',
-    a: 'Server tools run on dedicated hardware with optimized native libraries and GPUs. LocalPDF runs in your browser tab on your CPU. That trade-off is the whole point: privacy and zero-upload come at the cost of raw throughput. For everyday edits the difference is negligible; for batch-processing thousands of files, a server pipeline is the right tool.',
+    a: 'Server tools run on dedicated hardware with optimized native libraries and GPUs. BolaPDF runs in your browser tab on your CPU. That trade-off is the whole point: privacy and zero-upload come at the cost of raw throughput. For everyday edits the difference is negligible; for batch-processing thousands of files, a server pipeline is the right tool.',
   },
   {
     q: 'Why might results differ from server-based alternatives?',
-    a: 'Two reasons. First, the underlying libraries differ — LocalPDF uses pdf-lib and pdf.js, so re-compression, font handling, and image resampling follow their behaviour, not a server\'s proprietary engine. Second, server tools sometimes offer features that cannot be done safely in-browser (heavy OCR, server-grade compression). Those are intentionally out of scope here.',
+    a: 'Two reasons. First, the underlying libraries differ — BolaPDF uses pdf-lib and pdf.js, so re-compression, font handling, and image resampling follow their behaviour, not a server\'s proprietary engine. Second, server tools sometimes offer features that cannot be done safely in-browser (heavy OCR, server-grade compression). Those are intentionally out of scope here.',
   },
   {
     q: 'Does Compress always shrink my file?',
-    a: 'No. Lossless re-pack can only remove structural bloat; if a PDF is already optimised, it may come back the same size — and LocalPDF will never return a file larger than your original. Rasterize mode re-renders pages as images, which can actually increase size for text-heavy PDFs. Use compress on scanned or image-heavy documents for the best results.',
+    a: 'No. Lossless re-pack can only remove structural bloat; if a PDF is already optimised, it may come back the same size — and BolaPDF will never return a file larger than your original. Rasterize mode re-renders pages as images, which can actually increase size for text-heavy PDFs. Use compress on scanned or image-heavy documents for the best results.',
   },
   {
     q: 'Does it work offline?',
@@ -37,11 +37,22 @@ const faqs = [
   },
 ];
 
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
 export default function FAQ() {
   const [open, setOpen] = useState(null);
 
   return (
-    <PageShell title="FAQ" description="Honest answers about what LocalPDF can and can't do, and why a browser-only tool behaves differently from a server.">
+    <PageShell title="FAQ" description="Honest answers about what BolaPDF can and can't do, and why a browser-only tool behaves differently from a server.">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border">
         {faqs.map((f, i) => {
           const isOpen = open === i;

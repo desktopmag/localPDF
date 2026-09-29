@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ArrowUp, ArrowDown, X, Plus, Download, Loader2 } from 'lucide-react';
+import { ArrowUp, ArrowDown, Plus, Download, Loader2 } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
+import SelectedFilePreview from '@/components/SelectedFilePreview';
 import ToolShell, { PrimaryButton, ResetButton, OptionCard } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
 import { PDFDocument } from 'pdf-lib';
@@ -26,6 +27,14 @@ export default function ImagesToPDF() {
       if (j < 0 || j >= p.length) return p;
       const arr = [...p];
       [arr[i], arr[j]] = [arr[j], arr[i]];
+      return arr;
+    });
+  }
+  function replaceImage(i, newFile) {
+    setImages((p) => {
+      const arr = [...p];
+      URL.revokeObjectURL(arr[i].url);
+      arr[i] = { file: newFile, url: URL.createObjectURL(newFile) };
       return arr;
     });
   }
@@ -81,17 +90,21 @@ export default function ImagesToPDF() {
         <FileDropzone onFiles={add} accept="image/png,image/jpeg" multiple label="Drop images to convert" hint="JPG or PNG — reorder them below" />
       ) : (
         <div className="space-y-5">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="flex flex-wrap gap-4">
             {images.map((img, i) => (
-              <div key={i} className="relative overflow-hidden rounded-xl border border-border bg-card p-1.5">
-                <img src={img.url} alt={img.file.name} className="h-28 w-full rounded object-cover" />
-                <div className="mt-1 flex items-center justify-between px-0.5">
-                  <span className="truncate font-mono text-[9px] text-muted-foreground">{img.file.name}</span>
-                </div>
-                <div className="absolute right-1.5 top-1.5 flex gap-1">
-                  <button onClick={() => move(i, -1)} disabled={i === 0} className="rounded bg-black/60 p-1 text-white hover:text-primary disabled:opacity-30"><ArrowUp className="h-3 w-3" /></button>
-                  <button onClick={() => move(i, 1)} disabled={i === images.length - 1} className="rounded bg-black/60 p-1 text-white hover:text-primary disabled:opacity-30"><ArrowDown className="h-3 w-3" /></button>
-                  <button onClick={() => remove(i)} className="rounded bg-black/60 p-1 text-white hover:text-destructive"><X className="h-3 w-3" /></button>
+              <div key={`${img.file.name}-${i}`} className="flex flex-col items-center gap-1.5">
+                <SelectedFilePreview
+                  file={img.file}
+                  onRemove={() => remove(i)}
+                  onFileChange={(nf) => replaceImage(i, nf)}
+                />
+                <div className="flex items-center gap-1">
+                  <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="rounded p-1 text-muted-foreground hover:text-foreground disabled:opacity-30" title="Move earlier">
+                    <ArrowUp className="h-3.5 w-3.5" />
+                  </button>
+                  <button type="button" onClick={() => move(i, 1)} disabled={i === images.length - 1} className="rounded p-1 text-muted-foreground hover:text-foreground disabled:opacity-30" title="Move later">
+                    <ArrowDown className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
             ))}

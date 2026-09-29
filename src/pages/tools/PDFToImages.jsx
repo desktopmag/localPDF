@@ -1,20 +1,32 @@
 import React, { useState } from 'react';
-import { Download, Loader2, ImageDown, X } from 'lucide-react';
+import { AlertTriangle, Download, Loader2 } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
+import SelectedFilePreview from '@/components/SelectedFilePreview';
 import ToolShell, { PrimaryButton, ResetButton, OptionCard } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
 import { formatBytes, getPdfjs, renderPageCanvas } from '@/lib/pdfUtils';
 import JSZip from 'jszip';
 import { usePdfToolHandoff } from '@/hooks/usePdfToolHandoff';
+import { clearToolHandoff } from '@/lib/toolHandoff';
 
 export default function PDFToImages() {
   const [file, setFile] = useState(null);
   const [format, setFormat] = useState('jpg');
   const [scale, setScale] = useState(2);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
 
-  usePdfToolHandoff('pdf-to-images', setFile);
+  function clearFile() {
+    clearToolHandoff();
+    setFile(null);
+    setError(null);
+  }
+
+  usePdfToolHandoff('pdf-to-images', (f) => {
+    setFile(f);
+    setError(null);
+  });
 
   function dataUrlToBytes(dataUrl) {
     const b = atob(dataUrl.split(',')[1]);
@@ -24,7 +36,9 @@ export default function PDFToImages() {
   }
 
   async function convert() {
+    if (!file || busy) return;
     setBusy(true);
+    setError(null);
     try {
       const doc = await getPdfjs(file);
       const items = [];
@@ -57,6 +71,13 @@ export default function PDFToImages() {
       );
 
       setResult({ blob, name, size: blob.size, note: thumbs });
+    } catch (e) {
+      const msg = e?.message || '';
+      if (/canvas|memory|size/i.test(msg)) {
+        setError('This PDF is too large at the current resolution. Try lowering the resolution slider and run again.');
+      } else {
+        setError(msg || 'Could not convert this PDF. Try re-uploading the file or use a different PDF.');
+      }
     } finally {
       setBusy(false);
     }
@@ -65,17 +86,24 @@ export default function PDFToImages() {
   return (
     <ToolShell title="PDF to JPG" description="Export each page of a PDF as JPG or PNG images." lib="pdf.js">
       {result ? (
-        <DownloadResult toolSlug="pdf-to-images" result={result} onReset={() => { setFile(null); setResult(null); }} note={result.note} />
+        <DownloadResult toolSlug="pdf-to-images" result={result} onReset={() => { clearFile(); setResult(null); }} note={result.note} />
       ) : !file ? (
-        <FileDropzone onFiles={(f) => setFile(f[0])} accept="application/pdf" label="Drop a PDF to convert" />
+        <FileDropzone onFiles={(f) => { setFile(f[0]); setError(null); }} accept="application/pdf" label="Drop a PDF to convert" />
       ) : (
         <div className="space-y-5">
-          <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-            <ImageDown className="h-5 w-5 text-accent" />
-            <span className="flex-1 truncate text-sm text-foreground">{file.name}</span>
-            <span className="text-xs text-muted-foreground">{formatBytes(file.size)}</span>
-            <button onClick={() => setFile(null)} className="rounded p-1.5 text-muted-foreground hover:text-destructive"><X className="h-4 w-4" /></button>
-          </div>
+          <SelectedFilePreview
+            file={file}
+            onRemove={clearFile}
+            onFileChange={(f) => { setFile(f); setError(null); }}
+            meta={formatBytes(file.size)}
+          />
+
+          {error && (
+            <div className="flex items-start gap-2 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
 
           <div className="grid gap-4 sm:grid-cols-2">
             <OptionCard label="Format">
@@ -97,7 +125,7 @@ export default function PDFToImages() {
             <PrimaryButton onClick={convert} busy={busy}>
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Convert &amp; Download
             </PrimaryButton>
-            <ResetButton onClick={() => setFile(null)}>Choose another</ResetButton>
+            <ResetButton onClick={clearFile}>Choose another</ResetButton>
           </div>
         </div>
       )}

@@ -125,7 +125,7 @@ function addTextLayer(slide, items, { invisible }) {
 async function buildVisualOrHybrid(file, mode, onProgress) {
   const PptxGenJS = (await import('pptxgenjs')).default;
   const pptx = new PptxGenJS();
-  pptx.author = 'LocalPDF';
+  pptx.author = 'BolaPDF';
   pptx.subject = 'Converted from PDF';
 
   const doc = await getPdfjs(file);
@@ -171,7 +171,7 @@ async function buildVisualOrHybrid(file, mode, onProgress) {
 async function buildEditable(file, onProgress) {
   const PptxGenJS = (await import('pptxgenjs')).default;
   const pptx = new PptxGenJS();
-  pptx.author = 'LocalPDF';
+  pptx.author = 'BolaPDF';
   pptx.subject = 'Editable reconstruction from PDF';
 
   onProgress?.('Loading layout engine (PyMuPDF WASM)…');

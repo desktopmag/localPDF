@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Download, Loader2, Hash, X } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
+import SelectedFilePreview from '@/components/SelectedFilePreview';
 import ToolShell, { PrimaryButton, ResetButton, OptionCard } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
 import { formatBytes } from '@/lib/pdfUtils';
@@ -52,12 +53,12 @@ export default function PageNumbers() {
         <FileDropzone onFiles={(f) => setFile(f[0])} accept="application/pdf" label="Drop a PDF to number" />
       ) : (
         <div className="space-y-5">
-          <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-            <Hash className="h-5 w-5 text-accent" />
-            <span className="flex-1 truncate text-sm text-foreground">{file.name}</span>
-            <span className="text-xs text-muted-foreground">{formatBytes(file.size)}</span>
-            <button onClick={() => setFile(null)} className="rounded p-1.5 text-muted-foreground hover:text-destructive"><X className="h-4 w-4" /></button>
-          </div>
+          <SelectedFilePreview
+            file={file}
+            onRemove={() => setFile(null)}
+            onFileChange={setFile}
+            meta={formatBytes(file.size)}
+          />
 
           <OptionCard label="Position">
             <div className="grid grid-cols-3 gap-2">

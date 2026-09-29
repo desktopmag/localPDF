@@ -1,4 +1,6 @@
 import { useLocation, Link } from 'react-router-dom';
+import Seo from '@/components/Seo';
+import { pageTitle } from '@/lib/site';
 
 export default function PageNotFound() {
   const location = useLocation();
@@ -6,6 +8,7 @@ export default function PageNotFound() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-background">
+      <Seo title={pageTitle('Page not found')} description="The page you requested could not be found on BolaPDF." noindex />
       <div className="max-w-md w-full">
         <div className="text-center space-y-6">
           <div className="space-y-2">

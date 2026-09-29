@@ -62,15 +62,20 @@ const SidebarProvider = React.forwardRef((
       _setOpen(openState)
     }
 
-    // This sets the cookie to keep the sidebar state.
-    document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+    // Defer cookie write so toggle stays responsive on the main thread.
+    requestAnimationFrame(() => {
+      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+    })
   }, [setOpenProp, open])
 
   // Helper to toggle the sidebar.
   const toggleSidebar = React.useCallback(() => {
-    return isMobile
-      ? setOpenMobile((open) => !open)
-      : setOpen((open) => !open);
+    if (isMobile) {
+      setOpenMobile((open) => !open)
+      return
+    }
+
+    setOpen((open) => !open)
   }, [isMobile, setOpen, setOpenMobile])
 
   // Adds a keyboard shortcut to toggle the sidebar.
@@ -161,7 +166,7 @@ const Sidebar = React.forwardRef((
         <SheetContent
           data-sidebar="sidebar"
           data-mobile="true"
-          className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+          className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground duration-apple ease-apple data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-apple data-[state=open]:duration-apple [&>button]:hidden"
           style={
             {
               "--sidebar-width": SIDEBAR_WIDTH_MOBILE
@@ -185,7 +190,7 @@ const Sidebar = React.forwardRef((
       {/* This is what handles the sidebar gap on desktop */}
       <div
         className={cn(
-          "relative h-svh w-[--sidebar-width] bg-transparent transition-[width] duration-200 ease-linear",
+          "relative h-svh w-[--sidebar-width] bg-transparent",
           "group-data-[collapsible=offcanvas]:w-0",
           "group-data-[side=right]:rotate-180",
           variant === "floating" || variant === "inset"
@@ -194,10 +199,11 @@ const Sidebar = React.forwardRef((
         )} />
       <div
         className={cn(
-          "fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] duration-200 ease-linear md:flex",
+          "fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] gpu-smooth transition-[transform,box-shadow] duration-apple ease-apple will-change-transform motion-reduce:transition-none md:flex",
+          "origin-left group-data-[state=expanded]:shadow-[12px_0_48px_-20px_rgba(0,0,0,0.28)]",
           side === "left"
-            ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
-            : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
+            ? "left-0 group-data-[collapsible=offcanvas]:-translate-x-full group-data-[collapsible=offcanvas]:scale-[0.98]"
+            : "right-0 origin-right group-data-[collapsible=offcanvas]:translate-x-full group-data-[collapsible=offcanvas]:scale-[0.98]",
           // Adjust the padding for floating and inset variants.
           variant === "floating" || variant === "inset"
             ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
@@ -207,7 +213,7 @@ const Sidebar = React.forwardRef((
         {...props}>
         <div
           data-sidebar="sidebar"
-          className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow">
+          className="flex h-full w-full flex-col bg-sidebar transition-[transform,opacity] duration-apple ease-apple group-data-[collapsible=offcanvas]:translate-x-2 group-data-[collapsible=offcanvas]:opacity-0 group-data-[state=expanded]:translate-x-0 group-data-[state=expanded]:opacity-100 group-data-[state=expanded]:delay-100 motion-reduce:transition-none group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow">
           {children}
         </div>
       </div>

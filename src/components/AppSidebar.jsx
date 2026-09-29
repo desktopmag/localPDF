@@ -1,12 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import {
-  FileLock2,
-  Home,
-  LayoutGrid,
-  Search,
-} from 'lucide-react';
-
+import { Home, LayoutGrid, Search } from 'lucide-react';
 import { tools } from '@/lib/tools';
 import {
   Sidebar,
@@ -16,15 +10,16 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
+  SidebarInput,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
   SidebarSeparator,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Input } from '@/components/ui/input';
 
-const CATEGORY_ORDER = ['Organize', 'Convert', 'Optimize', 'Edit'];
+const CATEGORY_ORDER = ['Organize', 'Convert', 'Optimize', 'Edit', 'Security'];
 
 const SITE_LINKS = [
   { to: '/', label: 'Home', icon: Home },
@@ -64,30 +59,16 @@ export default function AppSidebar() {
   return (
     <Sidebar side="left" variant="sidebar" collapsible="offcanvas">
       <SidebarHeader className="border-b border-sidebar-border">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <Link to="/">
-                <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                  <FileLock2 className="h-4 w-4" />
-                </span>
-                <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-display font-semibold">LocalPDF</span>
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                    Client-side tools
-                  </span>
-                </div>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-        <div className="relative px-2 pb-2">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
+        <div className="relative w-full">
+          <Search
+            className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+            aria-hidden
+          />
+          <SidebarInput
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search tools…"
-            className="h-8 pl-8 font-mono text-xs"
+            className="pl-8 font-mono text-xs"
             aria-label="Search tools"
           />
         </div>
@@ -163,6 +144,7 @@ export default function AppSidebar() {
           ))}
         </SidebarMenu>
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   );
 }

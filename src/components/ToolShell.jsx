@@ -1,15 +1,20 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ShieldCheck } from 'lucide-react';
+import Seo from '@/components/Seo';
+import { pageTitle } from '@/lib/site';
 
 export default function ToolShell({ title, description, lib, children }) {
+  const seoDescription = `${description} Free, private, and local — runs in your browser on BolaPDF.com with zero uploads.`;
+
   return (
     <div className="mx-auto max-w-5xl px-5 py-10 sm:py-14">
+      <Seo title={pageTitle(title)} description={seoDescription} />
       <Link
-        to="/"
-        className="mb-7 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-muted-foreground transition-colors hover:text-primary"
+        to="/tools"
+        className="relative z-10 mb-7 inline-flex items-center gap-2 rounded-md font-mono text-xs uppercase tracking-widest text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
       >
-        <ArrowLeft className="h-4 w-4" /> All tools
+        <ArrowLeft className="h-4 w-4" aria-hidden /> All tools
       </Link>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>

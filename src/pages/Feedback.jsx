@@ -45,7 +45,7 @@ export default function Feedback() {
           </div>
           <h2 className="mt-5 font-display text-xl font-semibold text-foreground">Thank you</h2>
           <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-            Your feedback was saved locally on this device. Because LocalPDF has no server, your
+            Your feedback was saved locally on this device. Because BolaPDF has no server, your
             message isn't transmitted anywhere — but it's recorded here for your own reference.
           </p>
           <button onClick={reset} className="mt-6 inline-flex items-center gap-2 rounded-xl border border-border px-4 py-3 font-mono text-xs uppercase tracking-widest text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground">
@@ -96,7 +96,7 @@ export default function Feedback() {
         </button>
 
         <p className="rounded-xl border border-border bg-card p-4 text-xs leading-relaxed text-muted-foreground">
-          Because LocalPDF runs without a backend, your submission is saved to this browser's
+          Because BolaPDF runs without a backend, your submission is saved to this browser's
           localStorage and never sent over the network. To reach the maintainers another way,
           copy your message and send it through your usual channel.
         </p>

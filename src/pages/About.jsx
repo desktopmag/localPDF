@@ -5,17 +5,17 @@ import { FileLock2, Cpu, WifiOff, ShieldOff, ArrowRight } from 'lucide-react';
 
 export default function About() {
   return (
-    <PageShell title="About LocalPDF" description="A privacy-first PDF toolkit built on a simple conviction: your documents should never have to leave your device.">
+    <PageShell title="About BolaPDF" description="A privacy-first PDF toolkit built on a simple conviction: your documents should never have to leave your device.">
       <div className="space-y-6 text-base leading-relaxed text-muted-foreground">
         <p>
-          LocalPDF exists because the default way of editing PDFs online asks you to hand your
+          BolaPDF exists because the default way of editing PDFs online asks you to hand your
           file to a stranger's server. Contracts, IDs, medical records, financial statements —
           people upload deeply personal documents to websites they've never audited, then hope
           those copies are deleted. That model is convenient. It is also unnecessary.
         </p>
         <p>
           A modern browser is a capable runtime. It can parse, render, and re-author PDFs
-          entirely on your own CPU, using open libraries like pdf-lib and pdf.js. LocalPDF wires
+          entirely on your own CPU, using open libraries like pdf-lib and pdf.js. BolaPDF wires
           those libraries into a clean toolkit and removes the server from the equation
           completely. There is no upload. There is no storage. There is no account. The only
           machine that ever holds your file is the one in front of you.
@@ -42,7 +42,7 @@ export default function About() {
       <div className="mt-10 rounded-2xl border border-primary/30 bg-primary/5 p-5">
         <h2 className="font-display text-base font-semibold text-foreground">Scope, honestly</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          LocalPDF is a lightweight editor for everyday tasks — merge, split, compress,
+          BolaPDF is a lightweight editor for everyday tasks — merge, split, compress,
           sign, watermark. It is intentionally not a heavy server-side pipeline. Very large files,
           server-grade OCR, and batch processing at scale are out of scope by design, and we say
           so plainly rather than pretending otherwise.

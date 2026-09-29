@@ -1,4 +1,6 @@
-# LocalPDF
+# BolaPDF
+
+**BOLA PDF** — Browser-Only Local Access PDF Editor · [bolapdf.com](https://bolapdf.com)
 
 Privacy-first PDF tools that run entirely in your browser. Merge, split, rotate, compress, convert, watermark, sign, and more — no uploads, no backend, no accounts.
 

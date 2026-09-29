@@ -1,30 +1,12 @@
 import React, { useState } from 'react';
-import { Download, Loader2, Presentation, X, AlertTriangle, Info } from 'lucide-react';
+import { Download, Loader2, AlertTriangle, Info } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
+import SelectedFilePreview from '@/components/SelectedFilePreview';
 import ToolShell, { PrimaryButton, ResetButton, OptionCard } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
 import { formatBytes } from '@/lib/pdfUtils';
 import { convertPdfToPptx, PPTX_MODE_INFO } from '@/lib/pdfToPptx';
 import { usePdfToolHandoff } from '@/hooks/usePdfToolHandoff';
-
-const ENGINES = [
-  {
-    title: 'Smart hybrid engine',
-    body: 'Renders each page at up to 2.5× for a sharp background, then overlays invisible text — searchable and copyable in PowerPoint.',
-  },
-  {
-    title: 'XObject image extraction',
-    body: 'In Editable mode, embedded PDF images are pulled via PyMuPDF (not screenshots) and placed using their bounding boxes.',
-  },
-  {
-    title: 'Intelligent text layout',
-    body: 'Line merging, gap-based spaces, bold/italic flags, and simple title/heading/body classification in Editable mode.',
-  },
-  {
-    title: 'Color fidelity',
-    body: 'Slide backgrounds sampled from page corners; text colours taken from PDF spans with sensible fallbacks.',
-  },
-];
 
 export default function PdfToPptx() {
   const [file, setFile] = useState(null);
@@ -82,33 +64,15 @@ export default function PdfToPptx() {
             label="Drop a PDF to convert to PowerPoint"
             hint="Slide decks and multi-page documents"
           />
-          <details className="rounded-2xl border border-border bg-card p-5">
-            <summary className="cursor-pointer font-display text-sm font-semibold text-foreground">
-              Conversion engines (local)
-            </summary>
-            <ul className="mt-4 space-y-3 text-xs leading-relaxed text-muted-foreground">
-              {ENGINES.map((e) => (
-                <li key={e.title}>
-                  <span className="font-medium text-foreground">{e.title}</span> — {e.body}
-                </li>
-              ))}
-            </ul>
-            <p className="mt-4 text-xs text-muted-foreground">
-              Full vector shape reconstruction (lines/rectangles as PPTX shapes) is not included yet — Editable mode focuses
-              on text and embedded images. Hybrid and Visual modes work without the large WASM download.
-            </p>
-          </details>
         </div>
       ) : (
         <div className="space-y-5">
-          <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-            <Presentation className="h-5 w-5 text-accent" />
-            <span className="flex-1 truncate text-sm text-foreground">{file.name}</span>
-            <span className="text-xs text-muted-foreground">{formatBytes(file.size)}</span>
-            <button onClick={reset} className="rounded p-1.5 text-muted-foreground hover:text-destructive">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+          <SelectedFilePreview
+            file={file}
+            onRemove={reset}
+            onFileChange={setFile}
+            meta={formatBytes(file.size)}
+          />
 
           <OptionCard label="Conversion mode">
             <div className="grid gap-2 sm:grid-cols-3">

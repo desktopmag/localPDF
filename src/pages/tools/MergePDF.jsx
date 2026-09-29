@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ArrowUp, ArrowDown, X, FileStack, Plus, Download, Loader2 } from 'lucide-react';
+import { ArrowUp, ArrowDown, Plus, Download, Loader2 } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
+import SelectedFilePreview from '@/components/SelectedFilePreview';
 import ToolShell, { PrimaryButton, ResetButton } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
 import { formatBytes } from '@/lib/pdfUtils';
@@ -52,19 +53,27 @@ export default function MergePDF() {
         <FileDropzone onFiles={add} accept="application/pdf" multiple label="Drop PDFs to merge" hint="select two or more — reorder them below" />
       ) : (
         <div className="space-y-3">
-          {files.map((f, i) => (
-            <div key={i} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-              <span className="font-mono text-xs text-muted-foreground">{String(i + 1).padStart(2, '0')}</span>
-              <FileStack className="h-5 w-5 shrink-0 text-accent" />
-              <span className="flex-1 truncate text-sm text-foreground">{f.name}</span>
-              <span className="hidden text-xs text-muted-foreground sm:inline">{formatBytes(f.size)}</span>
-              <div className="flex gap-1">
-                <button onClick={() => move(i, -1)} disabled={i === 0} className="rounded p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"><ArrowUp className="h-4 w-4" /></button>
-                <button onClick={() => move(i, 1)} disabled={i === files.length - 1} className="rounded p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"><ArrowDown className="h-4 w-4" /></button>
-                <button onClick={() => remove(i)} className="rounded p-1.5 text-muted-foreground hover:text-destructive"><X className="h-4 w-4" /></button>
+          <div className="flex flex-wrap gap-4">
+            {files.map((f, i) => (
+              <div key={`merge-${i}`} className="flex flex-col items-center gap-1.5">
+                <SelectedFilePreview
+                  file={f}
+                  onRemove={() => remove(i)}
+                  onFileChange={(nf) => setFiles((p) => p.map((x, j) => (j === i ? nf : x)))}
+                  meta={formatBytes(f.size)}
+                />
+                <div className="flex items-center gap-1">
+                  <span className="font-mono text-[10px] text-muted-foreground">{String(i + 1).padStart(2, '0')}</span>
+                  <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="rounded p-1 text-muted-foreground hover:text-foreground disabled:opacity-30" title="Move earlier">
+                    <ArrowUp className="h-3.5 w-3.5" />
+                  </button>
+                  <button type="button" onClick={() => move(i, 1)} disabled={i === files.length - 1} className="rounded p-1 text-muted-foreground hover:text-foreground disabled:opacity-30" title="Move later">
+                    <ArrowDown className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
 
           <label className="inline-flex cursor-pointer items-center gap-2 font-mono text-xs uppercase tracking-widest text-muted-foreground hover:text-primary">
             <Plus className="h-4 w-4" /> Add more

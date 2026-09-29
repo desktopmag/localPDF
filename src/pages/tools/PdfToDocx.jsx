@@ -1,20 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Download, Loader2, FileText, X, AlertTriangle, Info } from 'lucide-react';
+import { Download, Loader2, AlertTriangle, Info } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
+import SelectedFilePreview from '@/components/SelectedFilePreview';
 import ToolShell, { PrimaryButton, ResetButton, OptionCard } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
 import { formatBytes } from '@/lib/pdfUtils';
 import { convertPdfToDocx, getPyMuPDF } from '@/lib/pymupdfClient';
 import { convertPdfToDocxFast, PDF_TO_DOCX_MODE_INFO } from '@/lib/pdfTextToDocx';
 import { usePdfToolHandoff } from '@/hooks/usePdfToolHandoff';
-
-const HOW_IT_WORKS = [
-  'Glyphs are read from the PDF content stream — position, size, colour, spacing, and scaling — not just plain text.',
-  'Pages are segmented into words, lines, columns, and reading order (including multi-column layouts).',
-  'Structure is recovered where possible: tables, lists, headings, links, headers, and footers.',
-  'Fonts are rebuilt and embedded into the DOCX when licensing allows.',
-  'Output is real WordprocessingML (.docx) for Word, Google Docs, LibreOffice, and Pages.',
-];
 
 export default function PdfToDocx() {
   const [file, setFile] = useState(null);
@@ -103,30 +96,15 @@ export default function PdfToDocx() {
             label="Drop a PDF to convert to Word"
             hint="Text-based PDFs work best — not scanned documents"
           />
-          <details className="rounded-2xl border border-border bg-card p-5">
-            <summary className="cursor-pointer font-display text-sm font-semibold text-foreground">
-              How layout mode works
-            </summary>
-            <ul className="mt-4 list-disc space-y-2 pl-5 text-xs leading-relaxed text-muted-foreground">
-              {HOW_IT_WORKS.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ul>
-            <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-              Layout mode uses Artifex pdf2docx inside Pyodide. Fast mode only copies text lines and skips the WASM engine.
-            </p>
-          </details>
         </div>
       ) : (
         <div className="space-y-5">
-          <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-            <FileText className="h-5 w-5 text-accent" />
-            <span className="flex-1 truncate text-sm text-foreground">{file.name}</span>
-            <span className="text-xs text-muted-foreground">{formatBytes(file.size)}</span>
-            <button onClick={reset} className="rounded p-1.5 text-muted-foreground hover:text-destructive">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+          <SelectedFilePreview
+            file={file}
+            onRemove={reset}
+            onFileChange={setFile}
+            meta={formatBytes(file.size)}
+          />
 
           <OptionCard label="Conversion mode">
             <div className="grid gap-2 sm:grid-cols-2">

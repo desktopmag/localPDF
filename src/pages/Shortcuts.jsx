@@ -40,7 +40,7 @@ function Key({ children }) {
 
 export default function Shortcuts() {
   return (
-    <PageShell title="Keyboard Shortcuts" description="Move through LocalPDF without reaching for the mouse. These work on every page, except while typing in a field.">
+    <PageShell title="Keyboard Shortcuts" description="Move through BolaPDF without reaching for the mouse. These work on every page, except while typing in a field.">
       <div className="space-y-8">
         {groups.map((g) => (
           <div key={g.name}>

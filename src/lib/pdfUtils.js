@@ -30,7 +30,27 @@ export async function loadPdfLib(file) {
 
 export async function getPdfjs(file) {
   const bytes = await file.arrayBuffer();
-  return pdfjsLib.getDocument({ data: bytes }).promise;
+  return pdfjsLib.getDocument({ data: new Uint8Array(bytes) }).promise;
+}
+
+/** Rotate a JPEG/PNG data-URL preview by 90° steps (for card thumbnails). */
+export async function rotateDataUrlPreview(src, deltaDegrees = 90) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const quarterTurn = Math.abs(deltaDegrees % 180) === 90;
+      const canvas = document.createElement('canvas');
+      canvas.width = quarterTurn ? img.height : img.width;
+      canvas.height = quarterTurn ? img.width : img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate((deltaDegrees * Math.PI) / 180);
+      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+      resolve(canvas.toDataURL('image/jpeg', 0.7));
+    };
+    img.onerror = reject;
+    img.src = src;
+  });
 }
 
 export async function renderPageCanvas(pdfjsDoc, pageNum, scale = 1) {
@@ -50,4 +70,43 @@ export async function renderPageThumb(file, pageNum, scale = 0.4) {
   const url = canvas.toDataURL('image/jpeg', 0.7);
   await doc.destroy();
   return url;
+}
+
+export function isPdfFile(file) {
+  return file?.type === 'application/pdf' || /\.pdf$/i.test(file?.name || '');
+}
+
+export async function rotatePdfFile(file, deltaDegrees = 90) {
+  const doc = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+  doc.getPages().forEach((page) => {
+    const current = page.getRotation().angle;
+    page.setRotation(degrees((current + deltaDegrees) % 360));
+  });
+  const bytes = await doc.save();
+  return new File([bytes], file.name, { type: 'application/pdf', lastModified: Date.now() });
+}
+
+export async function rotateImageFile(file, deltaDegrees = 90) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = reject;
+      el.src = url;
+    });
+    const quarterTurn = Math.abs(deltaDegrees % 180) === 90;
+    const canvas = document.createElement('canvas');
+    canvas.width = quarterTurn ? img.height : img.width;
+    canvas.height = quarterTurn ? img.width : img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate((deltaDegrees * Math.PI) / 180);
+    ctx.drawImage(img, -img.width / 2, -img.height / 2);
+    const mime = file.type && file.type.startsWith('image/') ? file.type : 'image/jpeg';
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, mime, 0.92));
+    return new File([blob], file.name, { type: mime, lastModified: Date.now() });
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }

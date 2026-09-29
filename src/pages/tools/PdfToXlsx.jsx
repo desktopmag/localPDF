@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Download, Loader2, Sheet, X, AlertTriangle, Info } from 'lucide-react';
+import { Download, Loader2, AlertTriangle, Info } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
+import SelectedFilePreview from '@/components/SelectedFilePreview';
 import ToolShell, { PrimaryButton, ResetButton } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
 import { formatBytes } from '@/lib/pdfUtils';
-import { convertPdfToXlsx, XLSX_PIPELINE } from '@/lib/pdfToXlsx';
+import { convertPdfToXlsx } from '@/lib/pdfToXlsx';
 import { usePdfToolHandoff } from '@/hooks/usePdfToolHandoff';
 
 const FEATURES = [
@@ -81,36 +82,15 @@ export default function PdfToXlsx() {
               </span>
             ))}
           </div>
-          <details className="rounded-2xl border border-border bg-card p-5">
-            <summary className="cursor-pointer font-display text-sm font-semibold text-foreground">
-              7-stage extraction pipeline
-            </summary>
-            <ol className="mt-4 space-y-3">
-              {XLSX_PIPELINE.map((s) => (
-                <li key={s.step} className="flex gap-3 text-xs leading-relaxed text-muted-foreground">
-                  <span className="font-mono text-[10px] text-primary">{s.step}</span>
-                  <div>
-                    <span className="font-medium text-foreground">{s.title}</span> — {s.body}
-                  </div>
-                </li>
-              ))}
-            </ol>
-            <p className="mt-4 text-xs text-muted-foreground">
-              Per-cell background colours and full CMYK operator tracing are limited by what PyMuPDF exposes in WASM;
-              ruled tables and refine merges are supported. Scanned PDFs need OCR and are out of scope.
-            </p>
-          </details>
         </div>
       ) : (
         <div className="space-y-5">
-          <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-            <Sheet className="h-5 w-5 text-accent" />
-            <span className="flex-1 truncate text-sm text-foreground">{file.name}</span>
-            <span className="text-xs text-muted-foreground">{formatBytes(file.size)}</span>
-            <button onClick={reset} className="rounded p-1.5 text-muted-foreground hover:text-destructive">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+          <SelectedFilePreview
+            file={file}
+            onRemove={reset}
+            onFileChange={setFile}
+            meta={formatBytes(file.size)}
+          />
 
           <div className="flex items-start gap-2 rounded-xl border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
             <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />

@@ -47,9 +47,31 @@ export function stageToolHandoff(targetSlug, file) {
   setPending({ targetSlug, file });
 }
 
-export function consumeToolHandoff(toolSlug) {
+/** Read staged file without clearing (safe for React Strict Mode remounts). */
+export function getToolHandoffFile(toolSlug) {
   const pending = getPending();
   if (!pending || pending.targetSlug !== toolSlug) return null;
-  setPending(null);
   return pending.file;
+}
+
+export function clearToolHandoff() {
+  setPending(null);
+}
+
+/** @deprecated Prefer getToolHandoffFile — clearing on read breaks Strict Mode remounts. */
+export function consumeToolHandoff(toolSlug) {
+  const file = getToolHandoffFile(toolSlug);
+  if (file) clearToolHandoff();
+  return file;
+}
+
+/** Clone result bytes into a standalone File for the next tool. */
+export async function resultToHandoffFileAsync(result) {
+  if (!result?.blob) return null;
+  const name = result.name || 'document.pdf';
+  const isPdf =
+    result.blob.type === 'application/pdf' || name.toLowerCase().endsWith('.pdf');
+  if (!isPdf) return null;
+  const bytes = await result.blob.arrayBuffer();
+  return new File([bytes], name, { type: 'application/pdf' });
 }

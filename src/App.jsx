@@ -3,7 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
-import ScrollToTop from './components/ScrollToTop';
+import ScrollRestoration from './components/ScrollRestoration';
 import Layout from '@/components/Layout';
 
 import Home from '@/pages/Home';
@@ -27,6 +27,13 @@ import PageNumbers from '@/pages/tools/PageNumbers';
 import CropPDF from '@/pages/tools/CropPages';
 import Metadata from '@/pages/tools/Metadata';
 import SignPDF from '@/pages/tools/SignPDF';
+import RotatePDF from '@/pages/tools/RotatePDF';
+import ProtectPDF from '@/pages/tools/ProtectPDF';
+import UnlockPDF from '@/pages/tools/UnlockPDF';
+import FlattenPDF from '@/pages/tools/FlattenPDF';
+import ExtractText from '@/pages/tools/ExtractText';
+import HeadersFooters from '@/pages/tools/HeadersFooters';
+import CsvToPdf from '@/pages/tools/CsvToPdf';
 
 import PrivacyManifesto from '@/pages/PrivacyManifesto';
 import FAQ from '@/pages/FAQ';
@@ -41,7 +48,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClientInstance}>
       <Router>
-        <ScrollToTop />
+        <ScrollRestoration />
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
@@ -71,6 +78,13 @@ function App() {
             <Route path="/tools/crop" element={<CropPDF />} />
             <Route path="/tools/metadata" element={<Metadata />} />
             <Route path="/tools/sign" element={<SignPDF />} />
+            <Route path="/tools/rotate" element={<RotatePDF />} />
+            <Route path="/tools/protect" element={<ProtectPDF />} />
+            <Route path="/tools/unlock" element={<UnlockPDF />} />
+            <Route path="/tools/flatten" element={<FlattenPDF />} />
+            <Route path="/tools/extract-text" element={<ExtractText />} />
+            <Route path="/tools/headers-footers" element={<HeadersFooters />} />
+            <Route path="/tools/csv-to-pdf" element={<CsvToPdf />} />
 
             <Route path="/privacy-manifesto" element={<PrivacyManifesto />} />
             <Route path="/faq" element={<FAQ />} />

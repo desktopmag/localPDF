@@ -9,7 +9,7 @@ export default function ToolCatalog() {
   const categories = [...new Set(tools.map((t) => t.category))];
 
   return (
-    <PageShell title="Tool Catalog" description="Every tool in LocalPDF, organized by what it does. All local, all the time.">
+    <PageShell title="Tool Catalog" description="Every tool in BolaPDF, organized by what it does. All local, all the time.">
       <div className="space-y-10">
         {categories.map((cat) => (
           <div key={cat}>
