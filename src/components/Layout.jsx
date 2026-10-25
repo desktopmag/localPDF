@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import MainContentArea from '@/components/MainContentArea';
 import { ShieldOff, Cpu, FileLock2 } from 'lucide-react';
 import LocalPdfLogoMark from '@/components/LocalPdfLogoMark';
-import SiteJsonLd from '@/components/SiteJsonLd';
 import { SITE_ACRONYM_EXPANDED, SITE_NAME } from '@/lib/site';
 import ThemeToggle from '@/components/ThemeToggle';
 import AppSidebar from '@/components/AppSidebar';
@@ -191,7 +190,6 @@ export default function Layout() {
 
   return (
     <SidebarProvider defaultOpen>
-      <SiteJsonLd />
       <AppSidebar />
       <MainChrome />
     </SidebarProvider>

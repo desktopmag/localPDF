@@ -1,1 +1,11 @@
-/*    /index.html   200
+# Legacy / alias URLs (keep in sync with REDIRECTS in src/lib/routeMeta.js; the build verifies this)
+/tools/powerpoint-to-pdf /tools/pptx-to-pdf 301
+/tools/jpg-to-pdf /tools/images-to-pdf 301
+/tools/pdf-to-jpg /tools/pdf-to-images 301
+/tools/pdf-to-excel /tools/pdf-to-xlsx 301
+/tools/pdf-to-powerpoint /tools/pdf-to-pptx 301
+/tools/pdf-to-word /tools/pdf-to-docx 301
+
+# Intentionally NO "/* /index.html 200" SPA fallback: every valid route is pre-rendered to
+# dist/<route>/index.html by scripts/prerender-routes.mjs, so Cloudflare Pages returns a real
+# HTTP 404 (serving dist/404.html) for unknown URLs instead of a soft-404 200.

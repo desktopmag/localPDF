@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { getRouteMeta } from '@/lib/routeMeta';
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_TITLE,
@@ -35,9 +36,13 @@ function upsertLink(rel, href) {
  */
 export default function usePageSeo({ title, description, path, noindex = false } = {}) {
   const location = useLocation();
-  const canonicalPath = path ?? location.pathname;
-  const docTitle = title || DEFAULT_TITLE;
-  const docDescription = description || DEFAULT_DESCRIPTION;
+  // Known routes take their metadata from the shared route table so the
+  // client-side values always match what scripts/prerender-routes.mjs bakes into the static HTML.
+  const routeMeta = getRouteMeta(location.pathname);
+  const canonicalPath = routeMeta?.path ?? path ?? location.pathname;
+  const docTitle = routeMeta?.title || title || DEFAULT_TITLE;
+  const docDescription = routeMeta?.description || description || DEFAULT_DESCRIPTION;
+  const jsonLdKey = routeMeta ? JSON.stringify(routeMeta.jsonLd) : '';
   const canonical = absoluteUrl(canonicalPath);
   const ogImage = absoluteUrl(OG_IMAGE_PATH);
 
@@ -59,11 +64,22 @@ export default function usePageSeo({ title, description, path, noindex = false }
     upsertMeta('meta[name="twitter:description"]', { name: 'twitter:description', content: docDescription });
     upsertMeta('meta[name="twitter:image"]', { name: 'twitter:image', content: ogImage });
 
+    document.head.querySelectorAll('script[data-route-jsonld]').forEach((n) => n.remove());
+    if (jsonLdKey) {
+      JSON.parse(jsonLdKey).forEach((block) => {
+        const el = document.createElement('script');
+        el.type = 'application/ld+json';
+        el.setAttribute('data-route-jsonld', '');
+        el.textContent = JSON.stringify(block);
+        document.head.appendChild(el);
+      });
+    }
+
     if (noindex) {
       upsertMeta('meta[name="robots"]', { name: 'robots', content: 'noindex, nofollow' });
     } else {
       const robots = document.head.querySelector('meta[name="robots"]');
       if (robots) robots.remove();
     }
-  }, [docTitle, docDescription, canonical, ogImage, noindex]);
+  }, [docTitle, docDescription, canonical, ogImage, noindex, jsonLdKey]);
 }

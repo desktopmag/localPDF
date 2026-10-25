@@ -22,15 +22,3 @@ export function pageTitle(pageTitle) {
   if (!pageTitle) return DEFAULT_TITLE;
   return `${pageTitle} · ${SITE_NAME}`;
 }
-
-export const STATIC_PATHS = [
-  '/',
-  '/tools',
-  '/about',
-  '/how-it-works',
-  '/privacy-manifesto',
-  '/faq',
-  '/shortcuts',
-  '/system-status',
-  '/feedback',
-];
