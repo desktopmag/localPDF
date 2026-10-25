@@ -58,6 +58,23 @@ both `REDIRECTS` (routeMeta) and `public/_redirects`.
 `/tools/ocr` uses Tesseract.js, lazy-loaded. The worker, WASM core and English language data are self-hosted: `npm run dev`/`build`
 copy them from `node_modules` into `public/ocr/` (git-ignored) via `scripts/sync-wasm-assets.mjs`. Licence notes: `LICENSES/NOTES.md`.
 
+## Compress, Protect and Unlock (qpdf + mozjpeg WASM)
+
+All lazy-loaded, nothing is uploaded, and the WASM is served from your own origin:
+
+- **qpdf** (`qpdf-wasm`, qpdf 12, Apache-2.0) runs in a short-lived Web Worker (`src/lib/qpdf.worker.js`, API in `src/lib/qpdfClient.js`).
+  `scripts/sync-wasm-assets.mjs` copies `qpdf.js` + `qpdf.wasm` into `public/qpdf/` (git-ignored) because Emscripten re-uses `qpdf.js`
+  to spawn its pthread workers. This build needs `SharedArrayBuffer`, i.e. the COOP/COEP headers in `public/_headers` and `vite.config.js`.
+- **mozjpeg** (`@jsquash/jpeg`) runs in `src/lib/jpeg.worker.js`; its `.wasm` is a hashed Vite asset.
+- **Compress** (`src/lib/pdfCompress.js`): Smart (recompress embedded JPEGs, then qpdf repack), Structure-only (lossless qpdf) and
+  Flatten-to-images, each with Low/Medium/High presets. Output is never larger than the input.
+- **Protect / Unlock** (`src/lib/pdfEncryption.js`): real AES-256 (R6) with user/owner passwords and print/modify/copy permissions.
+  (`pdf-lib` cannot encrypt: its `userPassword` save option is silently ignored.)
+
+## Social image
+
+`public/og-image.png` (1200x630) is generated from `scripts/assets/og-image.svg` with `npm run og:image` (resvg, dev dependency) and committed.
+
 ## Deploy (static hosting)
 
 This app is a single-page application (React Router). Host the `dist/` folder on any static provider (Cloudflare Pages, Netlify, Vercel, GitHub Pages, etc.).
