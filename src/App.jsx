@@ -1,54 +1,65 @@
+import { Suspense, lazy } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
-import PageNotFound from './lib/PageNotFound';
+const PageNotFound = lazy(() => import('./lib/PageNotFound'));
 import ScrollRestoration from './components/ScrollRestoration';
 import Layout from '@/components/Layout';
 
 import Home from '@/pages/Home';
-import MergePDF from '@/pages/tools/MergePDF';
-import SplitPDF from '@/pages/tools/SplitPDF';
-import ExtractPages from '@/pages/tools/ExtractPages';
-import HtmlToPdf from '@/pages/tools/HtmlToPdf';
-import DocxToPdf from '@/pages/tools/DocxToPdf';
-import ExcelToPdf from '@/pages/tools/ExcelToPdf';
-import PdfToDocx from '@/pages/tools/PdfToDocx';
-import PdfToPptx from '@/pages/tools/PdfToPptx';
-import PdfToXlsx from '@/pages/tools/PdfToXlsx';
-import PptxToPdf from '@/pages/tools/PptxToPdf';
-import OrganizePages from '@/pages/tools/OrganizePages';
-import DeletePages from '@/pages/tools/DeletePages';
-import CompressPDF from '@/pages/tools/CompressPDF';
-import PDFToImages from '@/pages/tools/PDFToImages';
-import ImagesToPDF from '@/pages/tools/ImagesToPDF';
-import WatermarkPDF from '@/pages/tools/WatermarkPDF';
-import PageNumbers from '@/pages/tools/PageNumbers';
-import CropPDF from '@/pages/tools/CropPages';
-import Metadata from '@/pages/tools/Metadata';
-import SignPDF from '@/pages/tools/SignPDF';
-import RotatePDF from '@/pages/tools/RotatePDF';
-import ProtectPDF from '@/pages/tools/ProtectPDF';
-import UnlockPDF from '@/pages/tools/UnlockPDF';
-import FlattenPDF from '@/pages/tools/FlattenPDF';
-import ExtractText from '@/pages/tools/ExtractText';
-import HeadersFooters from '@/pages/tools/HeadersFooters';
-import CsvToPdf from '@/pages/tools/CsvToPdf';
+const MergePDF = lazy(() => import('@/pages/tools/MergePDF'));
+const SplitPDF = lazy(() => import('@/pages/tools/SplitPDF'));
+const ExtractPages = lazy(() => import('@/pages/tools/ExtractPages'));
+const HtmlToPdf = lazy(() => import('@/pages/tools/HtmlToPdf'));
+const DocxToPdf = lazy(() => import('@/pages/tools/DocxToPdf'));
+const ExcelToPdf = lazy(() => import('@/pages/tools/ExcelToPdf'));
+const PdfToDocx = lazy(() => import('@/pages/tools/PdfToDocx'));
+const PdfToPptx = lazy(() => import('@/pages/tools/PdfToPptx'));
+const PdfToXlsx = lazy(() => import('@/pages/tools/PdfToXlsx'));
+const PptxToPdf = lazy(() => import('@/pages/tools/PptxToPdf'));
+const OrganizePages = lazy(() => import('@/pages/tools/OrganizePages'));
+const DeletePages = lazy(() => import('@/pages/tools/DeletePages'));
+const CompressPDF = lazy(() => import('@/pages/tools/CompressPDF'));
+const PDFToImages = lazy(() => import('@/pages/tools/PDFToImages'));
+const ImagesToPDF = lazy(() => import('@/pages/tools/ImagesToPDF'));
+const WatermarkPDF = lazy(() => import('@/pages/tools/WatermarkPDF'));
+const PageNumbers = lazy(() => import('@/pages/tools/PageNumbers'));
+const CropPDF = lazy(() => import('@/pages/tools/CropPages'));
+const Metadata = lazy(() => import('@/pages/tools/Metadata'));
+const SignPDF = lazy(() => import('@/pages/tools/SignPDF'));
+const RotatePDF = lazy(() => import('@/pages/tools/RotatePDF'));
+const ProtectPDF = lazy(() => import('@/pages/tools/ProtectPDF'));
+const UnlockPDF = lazy(() => import('@/pages/tools/UnlockPDF'));
+const FlattenPDF = lazy(() => import('@/pages/tools/FlattenPDF'));
+const ExtractText = lazy(() => import('@/pages/tools/ExtractText'));
+const HeadersFooters = lazy(() => import('@/pages/tools/HeadersFooters'));
+const CsvToPdf = lazy(() => import('@/pages/tools/CsvToPdf'));
 
-import PrivacyManifesto from '@/pages/PrivacyManifesto';
-import FAQ from '@/pages/FAQ';
-import Shortcuts from '@/pages/Shortcuts';
-import About from '@/pages/About';
-import HowItWorks from '@/pages/HowItWorks';
-import SystemStatus from '@/pages/SystemStatus';
-import ToolCatalog from '@/pages/ToolCatalog';
-import Feedback from '@/pages/Feedback';
+const PrivacyManifesto = lazy(() => import('@/pages/PrivacyManifesto'));
+const FAQ = lazy(() => import('@/pages/FAQ'));
+const Shortcuts = lazy(() => import('@/pages/Shortcuts'));
+const About = lazy(() => import('@/pages/About'));
+const HowItWorks = lazy(() => import('@/pages/HowItWorks'));
+const SystemStatus = lazy(() => import('@/pages/SystemStatus'));
+const ToolCatalog = lazy(() => import('@/pages/ToolCatalog'));
+const Feedback = lazy(() => import('@/pages/Feedback'));
+
+/** Shown while a route's code chunk loads (pages are code-split per route). */
+function RouteFallback() {
+  return (
+    <div role="status" aria-live="polite" className="flex min-h-[40vh] items-center justify-center">
+      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Loading…</span>
+    </div>
+  );
+}
 
 function App() {
   return (
     <QueryClientProvider client={queryClientInstance}>
       <Router>
         <ScrollRestoration />
+        <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
@@ -97,6 +108,7 @@ function App() {
           </Route>
           <Route path="*" element={<PageNotFound />} />
         </Routes>
+        </Suspense>
       </Router>
       <Toaster />
     </QueryClientProvider>
