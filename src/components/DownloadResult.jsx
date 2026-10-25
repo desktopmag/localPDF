@@ -25,6 +25,7 @@ const relatedMap = {
   'page-numbers': ['watermark', 'sign', 'metadata'],
   crop: ['organize', 'merge', 'delete', 'compress'],
   metadata: ['merge', 'split', 'watermark', 'page-numbers'],
+  ocr: ['extract-text', 'compress', 'pdf-to-docx', 'merge'],
   sign: ['watermark', 'page-numbers', 'metadata'],
 };
 

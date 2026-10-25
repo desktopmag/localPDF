@@ -55,7 +55,7 @@ export default function ExtractText() {
   return (
     <ToolShell
       title="Extract Text"
-      description="Copy plain text from PDFs that already have a text layer. Scanned image-only pages need OCR (not included)."
+      description="Copy plain text from PDFs that already have a text layer. Scanned image-only pages need the OCR PDF tool."
       lib="pdf.js"
     >
       {!file ? (

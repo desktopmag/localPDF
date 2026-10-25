@@ -1,7 +1,7 @@
 import {
   FileStack, Scissors, LayoutGrid, Trash2, Minimize2,
   ImageDown, FileImage, Droplet, Hash, Crop, FileCog, PenLine, FileSearch, FileCode2,
-  FileText, Sheet, Presentation, RotateCw, Lock, LockOpen, Layers, AlignVerticalSpaceAround, Table,
+  FileText, Sheet, Presentation, ScanText, RotateCw, Lock, LockOpen, Layers, AlignVerticalSpaceAround, Table,
 } from 'lucide-react';
 
 export const tools = [
@@ -22,6 +22,7 @@ export const tools = [
   { slug: 'pdf-to-docx', title: 'PDF to Word', desc: 'Fast text-only .docx or slow layout rebuild with pdf2docx (WASM).', icon: FileText, category: 'Convert', convertGroup: 'from-pdf', lib: 'pdf.js or PyMuPDF + pdf2docx' },
   { slug: 'pdf-to-pptx', title: 'PDF to PowerPoint', desc: 'Hybrid, editable, or visual PPTX — searchable overlays or native text/images.', icon: Presentation, category: 'Convert', convertGroup: 'from-pdf', lib: 'pdf.js + PptxGenJS' },
   { slug: 'pdf-to-xlsx', title: 'PDF to Excel', desc: 'Vector table extraction — borders, merges, typed cells, form fields.', icon: Sheet, category: 'Convert', convertGroup: 'from-pdf', lib: 'PyMuPDF + SheetJS' },
+  { slug: 'ocr', title: 'OCR PDF', desc: 'Make scanned PDFs searchable and copyable with in-browser OCR (English) — no uploads.', icon: ScanText, category: 'Convert', convertGroup: 'from-pdf', lib: 'Tesseract.js' },
   { slug: 'extract-text', title: 'Extract Text', desc: 'Pull plain text from digital PDFs (text layer required).', icon: FileSearch, category: 'Convert', convertGroup: 'from-pdf', lib: 'pdf.js' },
   { slug: 'watermark', title: 'Watermark PDF', desc: 'Stamp a text watermark across all pages with opacity & angle.', icon: Droplet, category: 'Edit', lib: 'pdf-lib.js' },
   { slug: 'page-numbers', title: 'Page Numbers', desc: 'Add page numbers with position, size and start number.', icon: Hash, category: 'Edit', lib: 'pdf-lib.js' },

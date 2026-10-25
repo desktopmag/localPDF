@@ -33,6 +33,7 @@ const ProtectPDF = lazy(() => import('@/pages/tools/ProtectPDF'));
 const UnlockPDF = lazy(() => import('@/pages/tools/UnlockPDF'));
 const FlattenPDF = lazy(() => import('@/pages/tools/FlattenPDF'));
 const ExtractText = lazy(() => import('@/pages/tools/ExtractText'));
+const OcrPDF = lazy(() => import('@/pages/tools/OcrPDF'));
 const HeadersFooters = lazy(() => import('@/pages/tools/HeadersFooters'));
 const CsvToPdf = lazy(() => import('@/pages/tools/CsvToPdf'));
 
@@ -94,6 +95,7 @@ function App() {
             <Route path="/tools/unlock" element={<UnlockPDF />} />
             <Route path="/tools/flatten" element={<FlattenPDF />} />
             <Route path="/tools/extract-text" element={<ExtractText />} />
+            <Route path="/tools/ocr" element={<OcrPDF />} />
             <Route path="/tools/headers-footers" element={<HeadersFooters />} />
             <Route path="/tools/csv-to-pdf" element={<CsvToPdf />} />
 

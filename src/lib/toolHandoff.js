@@ -28,6 +28,7 @@ export const PDF_INPUT_TOOL_SLUGS = new Set([
   'crop',
   'metadata',
   'sign',
+  'ocr',
 ]);
 
 export function canHandoffPdfTo(toolSlug) {

@@ -36,3 +36,6 @@ public/libreoffice-wasm/soffice.data
 
 
 .env
+
+# Self-hosted OCR runtime, copied from node_modules by scripts/sync-ocr-assets.mjs
+public/ocr/
