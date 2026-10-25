@@ -49,3 +49,10 @@ When shipping, keep the Apache-2.0 notice / attribution for Tesseract and pdf.js
 ## Not copied from other sites
 
 Nothing in this repository was copied or de-minified from ihatepdf.cv or any other site; the OCR, SEO and code-splitting work uses open-source libraries and original code only.
+
+## Other notes (tools audit, Oct 2026)
+
+- `xlsx` (SheetJS) 0.18.5 from npm has known advisories (prototype pollution / ReDoS) fixed only in the SheetJS-CDN 0.20.x builds. Files are user-supplied and processed locally; consider upgrading via the SheetJS tarball.
+- `libheif-js` (LGPL-3.0) and `@jspawn/ghostscript-wasm` / `mupdf` (AGPL-3.0) were evaluated for new tools and **not** added; owner decision needed before adopting any of them.
+- `public/libreoffice-wasm/browser.worker.global.js` is the unmodified worker from `@matbee/libreoffice-converter` (MPL-2.0). The LibreOffice runtime (soffice.wasm/data) is proxied from unpkg by `functions/libreoffice-wasm/[[path]].js` (MPL-2.0 / LGPL, not bundled).
+- `jszip` is dual MIT OR GPL-3.0 (MIT elected); `dompurify` is MPL-2.0 OR Apache-2.0 (Apache elected); `@fontsource-variable/inter` and `jetbrains-mono` are SIL OFL-1.1.
