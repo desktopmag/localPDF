@@ -6,6 +6,7 @@
  * which writes one static HTML file per route.
  */
 import { tools } from './tools.js';
+import { COMPRESS_DESCRIPTION, compressJsonLd, compressPrerenderSections } from './compressContent.js';
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_TITLE,
@@ -113,13 +114,17 @@ function breadcrumb(items) {
 
 function toolMeta(tool) {
   const path = `/tools/${tool.slug}`;
-  const description = `${tool.desc} Free, private, and local — runs in your browser on BolaPDF.com with zero uploads.`;
+  const isCompress = tool.slug === 'compress';
+  const description = isCompress
+    ? COMPRESS_DESCRIPTION
+    : `${tool.desc} Free, private, and local — runs in your browser on BolaPDF.com with zero uploads.`;
   return {
     path,
     kind: 'tool',
     title: `${tool.title} Online Free, No Upload · ${SITE_NAME}`,
     description,
     heading: tool.title,
+    sections: isCompress ? compressPrerenderSections() : undefined,
     jsonLd: [
       {
         '@context': 'https://schema.org',
@@ -139,6 +144,7 @@ function toolMeta(tool) {
         ['Tools', '/tools'],
         [tool.title, path],
       ]),
+      ...(isCompress ? compressJsonLd(absoluteUrl) : []),
     ],
   };
 }

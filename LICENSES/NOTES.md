@@ -41,6 +41,8 @@ Also note: the repository has **no LICENSE file** at all, so by default nobody e
 | **`@resvg/resvg-js`** 2.6.2 (added, **devDependency**) | MPL-2.0 | Renders `scripts/assets/og-image.svg` to `public/og-image.png` (`npm run og:image`); not shipped to browsers |
 | Be Vietnam Pro, Space Mono (fonts used only in the OG image artwork) | SIL OFL 1.1 | Embedded as rendered pixels in `og-image.png`; font files are not distributed |
 
+The compress workflow (levels, target size, ZIP, SSIM search, DPI scan, dedupe) adds no dependencies: it uses `jszip` (MIT OR GPL-3.0, already a dependency, lazy-loaded), `pdf-lib`, `@jsquash/jpeg` and `qpdf-wasm`. Font subsetting (e.g. HarfBuzz hb-subset, MIT) was evaluated and deliberately not added: it cannot be applied safely to embedded PDF fonts without rewriting CID/glyph mappings.
+
 The OCR, qpdf and mozjpeg additions are all permissive (Apache-2.0 / MIT) and are compatible with any outcome of the AGPL decision.
 When shipping, keep the Apache-2.0 notice / attribution for Tesseract and pdf.js (e.g. in an "Open-source licences" page).
 

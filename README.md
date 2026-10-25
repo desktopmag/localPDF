@@ -66,8 +66,17 @@ All lazy-loaded, nothing is uploaded, and the WASM is served from your own origi
   `scripts/sync-wasm-assets.mjs` copies `qpdf.js` + `qpdf.wasm` into `public/qpdf/` (git-ignored) because Emscripten re-uses `qpdf.js`
   to spawn its pthread workers. This build needs `SharedArrayBuffer`, i.e. the COOP/COEP headers in `public/_headers` and `vite.config.js`.
 - **mozjpeg** (`@jsquash/jpeg`) runs in `src/lib/jpeg.worker.js`; its `.wasm` is a hashed Vite asset.
-- **Compress** (`src/lib/pdfCompress.js`): Smart (recompress embedded JPEGs, then qpdf repack), Structure-only (lossless qpdf) and
-  Flatten-to-images, each with Low/Medium/High presets. Output is never larger than the input.
+- **Compress** (`/tools/compress`): a queue-based workflow (drop zone, multi-file queue, three levels, per-file progress, before/after
+  result, ZIP for several files, "Compress more"). Levels are *Extreme* / *Recommended* / *Less* (target 72 / 110 / 150 dpi); an optional
+  *target size* mode searches for the best quality that fits. The level is remembered in `localStorage`.
+  - `src/lib/pdfCompress.js` (DOM-free engine, runs in `compress.worker.js`; `compressClient.js` is the promise API, cancel = terminate):
+    effective-DPI downsampling (`pdfContentScan.js` tracks the CTM through content streams and Form XObjects), a per-image binary search
+    over mozjpeg quality guarded by SSIM/PSNR (`jpeg.worker.js`, small worker pool), lossless-photo to JPEG conversion (no alpha/masks),
+    grayscale detection, identical-image dedupe, thumbnail and (optionally) metadata stripping (the title is kept), then a qpdf repack
+    (object streams, maximum Flate). Images that would not shrink are left untouched, and output is never larger than the input.
+  - Advanced options keep the older methods: Structure-only (lossless qpdf) and Flatten-to-images (main thread, needs a canvas).
+  - Not done: font subsetting. Producers almost always subset already, and rewriting glyph tables of embedded TrueType/CFF fonts
+    risks silently breaking text, so fonts are only recompressed losslessly.
 - **Protect / Unlock** (`src/lib/pdfEncryption.js`): real AES-256 (R6) with user/owner passwords and print/modify/copy permissions.
   (`pdf-lib` cannot encrypt: its `userPassword` save option is silently ignored.)
 

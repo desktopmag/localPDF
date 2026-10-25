@@ -71,6 +71,7 @@ function fallbackBody(meta) {
   return `<main data-prerender style="max-width:56rem;margin:0 auto;padding:2rem 1.25rem;font-family:Inter,system-ui,sans-serif;line-height:1.6">
 <h1>${esc(meta.heading)}</h1>
 <p>${esc(meta.description)}</p>
+${(meta.sections ?? []).map((sec) => `<section><h2>${esc(sec.heading)}</h2><ul>${sec.items.map((i) => `<li>${esc(i)}</li>`).join('')}</ul></section>`).join('')}
 <nav aria-label="PDF tools"><ul>${links}</ul></nav>
 <p><a href="/">${SITE_NAME} home</a> · <a href="/tools">All tools</a> · <a href="/faq">FAQ</a> · <a href="/privacy-manifesto">Privacy</a></p>
 </main>`;

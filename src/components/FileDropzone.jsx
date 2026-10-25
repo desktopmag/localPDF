@@ -7,6 +7,7 @@ export default function FileDropzone({
   multiple = false,
   label = 'Drop file here',
   hint = 'or click to browse — files never leave your device',
+  cta = '',
 }) {
   const inputRef = useRef(null);
   const [dragging, setDragging] = useState(false);
@@ -49,7 +50,12 @@ export default function FileDropzone({
         <UploadCloud className="h-7 w-7 text-primary" />
       </div>
       <p className="font-mono text-sm uppercase tracking-widest text-foreground">{label}</p>
-      <p className="mt-1.5 text-xs text-muted-foreground">{hint}</p>
+      {cta ? (
+        <span className="mt-6 inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3.5 font-mono text-xs font-semibold uppercase tracking-widest text-primary-foreground transition-colors group-hover:bg-primary/90">
+          {cta}
+        </span>
+      ) : null}
+      <p className={`text-xs text-muted-foreground ${cta ? 'mt-4' : 'mt-1.5'}`}>{hint}</p>
     </div>
   );
 }

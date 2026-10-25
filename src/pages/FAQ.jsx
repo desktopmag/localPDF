@@ -17,7 +17,7 @@ const faqs = [
   },
   {
     q: 'Does Compress always shrink my file?',
-    a: 'No. Lossless re-pack can only remove structural bloat; if a PDF is already optimised, it may come back the same size — and BolaPDF will never return a file larger than your original. Rasterize mode re-renders pages as images, which can actually increase size for text-heavy PDFs. Use compress on scanned or image-heavy documents for the best results.',
+    a: 'No. Text-only or already-optimised PDFs have little to remove, and BolaPDF never returns a file larger than your original: if it cannot do better you get the original back and the result says so. Photo-heavy and scanned PDFs shrink the most. Pick Extreme, Recommended or Less compression, or set a target size such as 1 MB. Flatten to images (under Advanced options) turns pages into pictures, so text is no longer selectable.',
   },
   {
     q: 'Does it work offline?',

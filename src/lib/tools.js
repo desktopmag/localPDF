@@ -11,7 +11,7 @@ export const tools = [
   { slug: 'organize', title: 'Organize Pages', desc: 'Drag to reorder and delete pages with live thumbnails.', icon: LayoutGrid, category: 'Organize', lib: 'pdf.js + pdf-lib' },
   { slug: 'rotate', title: 'Rotate PDF', desc: 'Rotate all pages or one page by 90°, 180°, or 270°.', icon: RotateCw, category: 'Organize', lib: 'pdf-lib.js' },
   { slug: 'delete', title: 'Delete Pages', desc: 'Remove unwanted pages and keep the rest.', icon: Trash2, category: 'Organize', lib: 'pdf-lib.js' },
-  { slug: 'compress', title: 'Compress PDF', desc: 'Shrink PDFs with mozjpeg image recompression and qpdf, locally.', icon: Minimize2, category: 'Optimize', lib: 'qpdf + mozjpeg (WASM)' },
+  { slug: 'compress', title: 'Compress PDF', desc: 'Shrink PDFs to a level or target size — smart image optimisation with mozjpeg and qpdf, batch + ZIP, locally.', icon: Minimize2, category: 'Optimize', lib: 'qpdf + mozjpeg (WASM)' },
   { slug: 'images-to-pdf', title: 'JPG to PDF', desc: 'Turn JPG and PNG images into a single PDF.', icon: FileImage, category: 'Convert', convertGroup: 'to-pdf', lib: 'pdf-lib.js' },
   { slug: 'docx-to-pdf', title: 'Word to PDF', desc: 'Convert .docx to PDF locally — basic layout, not a full Word print engine.', icon: FileText, category: 'Convert', convertGroup: 'to-pdf', lib: 'mammoth + html2canvas + jsPDF' },
   { slug: 'excel-to-pdf', title: 'Excel to PDF', desc: 'Export spreadsheet sheets as PDF tables (.xlsx, .csv).', icon: Sheet, category: 'Convert', convertGroup: 'to-pdf', lib: 'SheetJS + jsPDF' },
