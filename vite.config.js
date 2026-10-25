@@ -27,6 +27,8 @@ export default defineConfig({
       },
     },
   },
+  // Module workers (jpeg/qpdf/compress/ocr) and a worker that spawns workers need ES output.
+  worker: { format: 'es' },
   server: {
     port: 5173,
     headers: {
