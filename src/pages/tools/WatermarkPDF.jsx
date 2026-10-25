@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
 import SelectedFilePreview from '@/components/SelectedFilePreview';
-import ToolShell, { PrimaryButton, ResetButton, OptionCard } from '@/components/ToolShell';
+import ToolShell, { PrimaryButton, ResetButton, OptionCard, ErrorNote } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
 import { formatBytes } from '@/lib/pdfUtils';
-import { PDFDocument, StandardFonts, rgb, degrees } from 'pdf-lib';
+import { StandardFonts, rgb } from 'pdf-lib';
+import { loadPdfDoc, friendlyMessage, assertEncodable } from '@/lib/pdfSafe';
+import { pageFrame, drawTextVisible } from '@/lib/pdfPlace';
 import { usePdfToolHandoff } from '@/hooks/usePdfToolHandoff';
 
 export default function WatermarkPDF() {
@@ -16,6 +18,7 @@ export default function WatermarkPDF() {
   const [rotation, setRotation] = useState(45);
   const [color, setColor] = useState('#888888');
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
 
   usePdfToolHandoff('watermark', setFile);
@@ -27,27 +30,25 @@ export default function WatermarkPDF() {
 
   async function apply() {
     setBusy(true);
+    setError(null);
     try {
-      const doc = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+      const doc = await loadPdfDoc(file);
       const font = await doc.embedFont(StandardFonts.HelveticaBold);
       const pages = doc.getPages();
       const col = hexToRgb(color);
+      assertEncodable(font, text);
       pages.forEach((page) => {
-        const { width, height } = page.getSize();
-        const tw = font.widthOfTextAtSize(text, size);
-        page.drawText(text, {
-          x: (width - tw) / 2,
-          y: height / 2,
-          size,
-          font,
-          color: col,
-          opacity,
-          rotate: degrees(rotation),
-          xoyo: { x: width / 2, y: height / 2 },
+        const frame = pageFrame(page);
+        // Centred on the visible page (respects CropBox, MediaBox origin and /Rotate), upright for the viewer.
+        drawTextVisible(page, text, {
+          font, size, color: col, opacity,
+          fx: frame.width / 2, fy: frame.height / 2, align: 'center', angle: rotation,
         });
       });
       const bytes = await doc.save();
       setResult({ blob: new Blob([bytes], { type: 'application/pdf' }), name: 'watermarked.pdf', size: bytes.byteLength });
+    } catch (e) {
+      setError(friendlyMessage(e));
     } finally {
       setBusy(false);
     }
@@ -87,6 +88,9 @@ export default function WatermarkPDF() {
               <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-10 w-16 cursor-pointer rounded border border-border bg-transparent" />
             </OptionCard>
           </div>
+
+          {error && <ErrorNote>{error}</ErrorNote>}
+
 
           <div className="flex gap-3 pt-1">
             <PrimaryButton onClick={apply} disabled={!text} busy={busy}>

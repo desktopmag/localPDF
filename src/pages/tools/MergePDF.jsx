@@ -2,15 +2,17 @@ import React, { useState } from 'react';
 import { ArrowUp, ArrowDown, Plus, Download, Loader2 } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
 import SelectedFilePreview from '@/components/SelectedFilePreview';
-import ToolShell, { PrimaryButton, ResetButton } from '@/components/ToolShell';
+import ToolShell, { PrimaryButton, ResetButton, ErrorNote } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
 import { formatBytes } from '@/lib/pdfUtils';
 import { PDFDocument } from 'pdf-lib';
+import { loadPdfDoc, friendlyMessage, UserError } from '@/lib/pdfSafe';
 import { usePdfToolHandoff } from '@/hooks/usePdfToolHandoff';
 
 export default function MergePDF() {
   const [files, setFiles] = useState([]);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
 
   function add(list) { setFiles((p) => [...p, ...list]); }
@@ -31,15 +33,23 @@ export default function MergePDF() {
 
   async function merge() {
     setBusy(true);
+    setError(null);
     try {
       const out = await PDFDocument.create();
       for (const f of files) {
-        const src = await PDFDocument.load(await f.arrayBuffer(), { ignoreEncryption: true });
+        let src;
+        try {
+          src = await loadPdfDoc(f);
+        } catch (err) {
+          throw new UserError(`${f.name}: ${friendlyMessage(err)}`);
+        }
         const pages = await out.copyPages(src, src.getPageIndices());
         pages.forEach((pg) => out.addPage(pg));
       }
       const bytes = await out.save();
       setResult({ blob: new Blob([bytes], { type: 'application/pdf' }), name: 'merged.pdf', size: bytes.byteLength });
+    } catch (e) {
+      setError(friendlyMessage(e));
     } finally {
       setBusy(false);
     }
@@ -79,6 +89,8 @@ export default function MergePDF() {
             <Plus className="h-4 w-4" /> Add more
             <input type="file" accept="application/pdf" multiple className="hidden" onChange={(e) => { add(Array.from(e.target.files)); e.target.value = ''; }} />
           </label>
+
+          {error && <ErrorNote>{error}</ErrorNote>}
 
           <div className="flex gap-3 pt-2">
             <PrimaryButton onClick={merge} disabled={files.length < 2} busy={busy}>

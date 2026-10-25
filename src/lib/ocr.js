@@ -3,8 +3,10 @@
  * scripts/sync-wasm-assets.mjs) and runs in a Web Worker: nothing is uploaded and no CDN is contacted.
  * tesseract.js itself is imported lazily so it never touches the main bundle.
  */
-import { PDFDocument, StandardFonts } from 'pdf-lib';
+import { StandardFonts } from 'pdf-lib';
 import { getPdfjs, renderPageCanvas } from '@/lib/pdfUtils';
+import { loadPdfDoc } from '@/lib/pdfSafe';
+import { pageFrame, drawTextVisible } from '@/lib/pdfPlace';
 
 const OCR_BASE = `${import.meta.env.BASE_URL}ocr`.replace(/\/{2,}/g, '/');
 
@@ -59,7 +61,7 @@ export async function ocrPdf(file, { scale = 2.5, makePdf = true, onProgress, si
     onProgress?.({ page: 0, pages: state.pages, fraction: 0, status: 'loading OCR engine' });
     worker = await createOcrWorker({ onProgress }, state);
 
-    const outDoc = makePdf ? await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true }) : null;
+    const outDoc = makePdf ? await loadPdfDoc(file) : null;
     const font = outDoc ? await outDoc.embedFont(StandardFonts.Helvetica) : null;
     const sanitize = font ? makeSanitizer(font) : null;
 
@@ -77,12 +79,12 @@ export async function ocrPdf(file, { scale = 2.5, makePdf = true, onProgress, si
 
       if (outDoc) {
         const page = outDoc.getPage(i - 1);
-        if (page.getRotation().angle % 360 !== 0) {
-          skippedRotated += 1; // text layer for rotated pages is not mapped; text output still works
-        } else {
-          const box = page.getCropBox();
-          const kx = box.width / canvas.width;
-          const ky = box.height / canvas.height;
+        {
+          // The canvas shows the page as a viewer would (CropBox + /Rotate applied), so map through the
+          // visible frame; rotated pages therefore get a correctly placed text layer too.
+          const frame = pageFrame(page);
+          const kx = frame.width / canvas.width;
+          const ky = frame.height / canvas.height;
           for (const block of data.blocks || []) {
             for (const para of block.paragraphs || []) {
               for (const line of para.lines || []) {
@@ -95,12 +97,12 @@ export async function ocrPdf(file, { scale = 2.5, makePdf = true, onProgress, si
                   if (!natural || wPts <= 0 || hPts <= 0) continue;
                   // Fit the word's width, but keep the glyph height plausible.
                   const size = Math.min(Math.max(wPts / natural, hPts * 0.5), hPts * 1.5);
-                  page.drawText(t, {
-                    x: box.x + w.bbox.x0 * kx,
-                    y: box.y + box.height - w.bbox.y1 * ky + hPts * 0.2,
-                    size,
+                  drawTextVisible(page, t, {
                     font,
+                    size,
                     opacity: 0,
+                    fx: w.bbox.x0 * kx,
+                    fy: frame.height - w.bbox.y1 * ky + hPts * 0.2,
                   });
                   words += 1;
                 }

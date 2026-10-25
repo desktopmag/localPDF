@@ -76,7 +76,7 @@ export default function ProtectPDF() {
         ),
       });
     } catch (e) {
-      setError(e?.message || 'Could not encrypt this PDF.');
+      setError(/invalid password/i.test(e?.message || '') ? 'This PDF already has a password. Unlock it first, then protect it with a new one.' : e?.message || 'Could not encrypt this PDF.');
     } finally {
       setBusy(false);
     }

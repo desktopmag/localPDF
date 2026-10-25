@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Download, Loader2, FileText, Copy, Check } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
 import SelectedFilePreview from '@/components/SelectedFilePreview';
-import ToolShell, { PrimaryButton } from '@/components/ToolShell';
+import ToolShell, { PrimaryButton, ErrorNote } from '@/components/ToolShell';
+import { friendlyMessage } from '@/lib/pdfSafe';
 import { formatBytes, getPdfjs } from '@/lib/pdfUtils';
 import { usePdfToolHandoff } from '@/hooks/usePdfToolHandoff';
 
@@ -11,26 +12,39 @@ export default function ExtractText() {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState(null);
 
   usePdfToolHandoff('extract-text', setFile);
 
   async function extract() {
     setBusy(true);
+    setError(null);
     try {
       const doc = await getPdfjs(file);
       const parts = [];
       for (let i = 1; i <= doc.numPages; i += 1) {
         const page = await doc.getPage(i);
         const content = await page.getTextContent();
-        const pageText = content.items
-          .map((item) => ('str' in item ? item.str : ''))
-          .join(' ')
-          .replace(/\s+/g, ' ')
+        // pdf.js marks the end of each visual line with hasEOL: keep those as newlines so paragraphs, lists and
+        // tables don't collapse into one long line.
+        let pageText = '';
+        for (const item of content.items) {
+          if (!('str' in item)) continue;
+          pageText += item.str;
+          if (item.hasEOL) pageText += '\n';
+          else if (item.str && !/\s$/.test(item.str)) pageText += ' ';
+        }
+        pageText = pageText
+          .replace(/[ \t]+\n/g, '\n')
+          .replace(/[ \t]{2,}/g, ' ')
+          .replace(/\n{3,}/g, '\n\n')
           .trim();
         parts.push(pageText ? `--- Page ${i} ---\n${pageText}` : `--- Page ${i} ---\n(no text layer)`);
       }
       await doc.destroy();
       setText(parts.join('\n\n'));
+    } catch (e) {
+      setError(friendlyMessage(e, 'Could not read the text of this PDF.'));
     } finally {
       setBusy(false);
     }
@@ -42,12 +56,23 @@ export default function ExtractText() {
     const a = document.createElement('a');
     a.href = url;
     a.download = file.name.replace(/\.pdf$/i, '') + '.txt';
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
   }
 
   async function copyAll() {
-    await navigator.clipboard.writeText(text);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -68,6 +93,8 @@ export default function ExtractText() {
             onFileChange={setFile}
             meta={formatBytes(file.size)}
           />
+
+          {error && <ErrorNote>{error}</ErrorNote>}
 
           {!text ? (
             <PrimaryButton onClick={extract} busy={busy} disabled={busy}>

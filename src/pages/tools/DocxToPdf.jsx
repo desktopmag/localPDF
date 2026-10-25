@@ -5,6 +5,7 @@ import SelectedFilePreview from '@/components/SelectedFilePreview';
 import ToolShell, { PrimaryButton, ResetButton, OptionCard } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
 import { formatBytes } from '@/lib/pdfUtils';
+import { sanitizeForRender } from '@/lib/safeHtml';
 import { createOffscreenHost, domElementToPdfBytes } from '@/lib/domToPdf';
 
 export default function DocxToPdf() {
@@ -32,7 +33,7 @@ export default function DocxToPdf() {
 
       const host = createOffscreenHost();
       const body = document.createElement('div');
-      body.innerHTML = html;
+      body.innerHTML = sanitizeForRender(html);
       host.appendChild(body);
       document.body.appendChild(host);
 

@@ -6,6 +6,7 @@ import ToolShell, { PrimaryButton, ResetButton, OptionCard } from '@/components/
 import DownloadResult from '@/components/DownloadResult';
 import { formatBytes, getPdfjs, renderPageCanvas } from '@/lib/pdfUtils';
 import JSZip from 'jszip';
+import { friendlyMessage } from '@/lib/pdfSafe';
 import { usePdfToolHandoff } from '@/hooks/usePdfToolHandoff';
 import { clearToolHandoff } from '@/lib/toolHandoff';
 
@@ -28,12 +29,8 @@ export default function PDFToImages() {
     setError(null);
   });
 
-  function dataUrlToBytes(dataUrl) {
-    const b = atob(dataUrl.split(',')[1]);
-    const arr = new Uint8Array(b.length);
-    for (let i = 0; i < b.length; i++) arr[i] = b.charCodeAt(i);
-    return arr;
-  }
+  const toBlob = (canvas, mime, quality) =>
+    new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('canvas size'))), mime, quality));
 
   async function convert() {
     if (!file || busy) return;
@@ -41,32 +38,49 @@ export default function PDFToImages() {
     setError(null);
     try {
       const doc = await getPdfjs(file);
-      const items = [];
+      const mime = format === 'jpg' ? 'image/jpeg' : 'image/png';
+      const ext = format === 'jpg' ? 'jpg' : 'png';
+      // Encode one page at a time and hand it straight to the zip, so memory never holds every page at once.
+      const zip = new JSZip();
+      const previews = [];
+      let single = null;
       for (let i = 1; i <= doc.numPages; i++) {
         const canvas = await renderPageCanvas(doc, i, scale);
-        const mime = format === 'jpg' ? 'image/jpeg' : 'image/png';
-        const dataUrl = canvas.toDataURL(mime, format === 'jpg' ? 0.85 : undefined);
-        items.push({ name: `page_${String(i).padStart(3, '0')}.${format === 'jpg' ? 'jpg' : 'png'}`, dataUrl, bytes: dataUrlToBytes(dataUrl) });
+        const blob = await toBlob(canvas, mime, format === 'jpg' ? 0.85 : undefined);
+        const name = `page_${String(i).padStart(3, '0')}.${ext}`;
+        if (doc.numPages === 1) single = { blob, name };
+        else zip.file(name, blob);
+        if (previews.length < 24) {
+          const t = document.createElement('canvas');
+          const k = 160 / Math.max(canvas.width, canvas.height);
+          t.width = Math.max(1, Math.round(canvas.width * k));
+          t.height = Math.max(1, Math.round(canvas.height * k));
+          t.getContext('2d').drawImage(canvas, 0, 0, t.width, t.height);
+          previews.push({ name, dataUrl: t.toDataURL('image/jpeg', 0.7) });
+        }
+        canvas.width = 0;
+        canvas.height = 0;
+        if (i % 4 === 0) await new Promise((r) => setTimeout(r, 0)); // let the UI breathe
       }
+      const pageTotal = doc.numPages;
       await doc.destroy();
 
       let blob, name;
-      if (items.length === 1) {
-        const it = items[0];
-        blob = new Blob([it.bytes], { type: it.dataUrl.startsWith('data:image/jpeg') ? 'image/jpeg' : 'image/png' });
-        name = it.name;
+      if (single) {
+        ({ blob, name } = single);
       } else {
-        const zip = new JSZip();
-        items.forEach((it) => zip.file(it.name, it.bytes));
-        blob = await zip.generateAsync({ type: 'blob' });
+        blob = await zip.generateAsync({ type: 'blob', compression: 'STORE' }); // images are already compressed
         name = 'pdf_images.zip';
       }
 
       const thumbs = (
         <div className="flex flex-wrap justify-center gap-2">
-          {items.map((p, i) => (
-            <img key={i} src={p.dataUrl} alt={p.name} className="h-20 w-16 rounded border border-border object-contain" />
+          {previews.map((p) => (
+            <img key={p.name} src={p.dataUrl} alt={p.name} className="h-20 w-16 rounded border border-border object-contain" />
           ))}
+          {pageTotal > previews.length && (
+            <span className="self-center font-mono text-[10px] uppercase tracking-widest text-muted-foreground">+{pageTotal - previews.length} more</span>
+          )}
         </div>
       );
 
@@ -76,7 +90,7 @@ export default function PDFToImages() {
       if (/canvas|memory|size/i.test(msg)) {
         setError('This PDF is too large at the current resolution. Try lowering the resolution slider and run again.');
       } else {
-        setError(msg || 'Could not convert this PDF. Try re-uploading the file or use a different PDF.');
+        setError(friendlyMessage(e, 'Could not convert this PDF. Try re-uploading the file or use a different PDF.'));
       }
     } finally {
       setBusy(false);

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, ShieldCheck } from 'lucide-react';
 import Seo from '@/components/Seo';
 import { pageTitle } from '@/lib/site';
 
@@ -59,6 +59,15 @@ export function OptionCard({ label, children }) {
     <div className="rounded-xl border border-border bg-card p-4">
       <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{label}</p>
       {children}
+    </div>
+  );
+}
+
+export function ErrorNote({ children }) {
+  return (
+    <div role="alert" className="flex items-start gap-2 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+      <span>{children}</span>
     </div>
   );
 }

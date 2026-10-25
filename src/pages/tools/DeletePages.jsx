@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
 import SelectedFilePreview from '@/components/SelectedFilePreview';
-import ToolShell, { PrimaryButton, ResetButton } from '@/components/ToolShell';
+import ToolShell, { PrimaryButton, ResetButton, ErrorNote } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
 import { formatBytes } from '@/lib/pdfUtils';
 import { PDFDocument } from 'pdf-lib';
+import { loadPdfDoc, friendlyMessage } from '@/lib/pdfSafe';
 import { usePdfToolHandoff } from '@/hooks/usePdfToolHandoff';
 
 export default function DeletePages() {
@@ -13,13 +14,20 @@ export default function DeletePages() {
   const [pageCount, setPageCount] = useState(0);
   const [selected, setSelected] = useState([]);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
 
   async function onFile(f) {
-    setFile(f);
-    const doc = await PDFDocument.load(await f.arrayBuffer(), { ignoreEncryption: true });
-    setPageCount(doc.getPageCount());
-    setSelected([]);
+    setError(null);
+    try {
+      const doc = await loadPdfDoc(f);
+      setFile(f);
+      setPageCount(doc.getPageCount());
+      setSelected([]);
+    } catch (e) {
+      setFile(null);
+      setError(friendlyMessage(e));
+    }
   }
 
   usePdfToolHandoff('delete', onFile);
@@ -30,8 +38,9 @@ export default function DeletePages() {
 
   async function del() {
     setBusy(true);
+    setError(null);
     try {
-      const src = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+      const src = await loadPdfDoc(file);
       const keep = [];
       for (let i = 1; i <= pageCount; i++) if (!selected.includes(i)) keep.push(i - 1);
       const out = await PDFDocument.create();
@@ -39,6 +48,8 @@ export default function DeletePages() {
       pages.forEach((p) => out.addPage(p));
       const bytes = await out.save();
       setResult({ blob: new Blob([bytes], { type: 'application/pdf' }), name: 'pages_removed.pdf', size: bytes.byteLength });
+    } catch (e) {
+      setError(friendlyMessage(e));
     } finally {
       setBusy(false);
     }
@@ -49,7 +60,10 @@ export default function DeletePages() {
       {result ? (
         <DownloadResult toolSlug="delete" result={result} onReset={() => { setFile(null); setResult(null); }} />
       ) : !file ? (
-        <FileDropzone onFiles={(f) => onFile(f[0])} accept="application/pdf" label="Drop a PDF to edit" />
+        <div className="space-y-4">
+          {error && <ErrorNote>{error}</ErrorNote>}
+          <FileDropzone onFiles={(f) => onFile(f[0])} accept="application/pdf" label="Drop a PDF to edit" />
+        </div>
       ) : (
         <div className="space-y-5">
           <SelectedFilePreview
@@ -68,6 +82,8 @@ export default function DeletePages() {
               </button>
             ))}
           </div>
+
+          {error && <ErrorNote>{error}</ErrorNote>}
 
           <div className="flex gap-3 pt-1">
             <PrimaryButton onClick={del} disabled={!selected.length || selected.length >= pageCount} busy={busy}>

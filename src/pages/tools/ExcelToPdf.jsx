@@ -26,7 +26,7 @@ export default function ExcelToPdf() {
     setResult(null);
     try {
       const [{ read, utils }, { jsPDF }] = await Promise.all([import('xlsx'), import('jspdf')]);
-      await import('jspdf-autotable');
+      const { default: autoTable } = await import('jspdf-autotable');
 
       const wb = read(await file.arrayBuffer(), { type: 'array' });
       const pdf = new jsPDF({ orientation, unit: 'pt', format: 'a4' });
@@ -38,7 +38,7 @@ export default function ExcelToPdf() {
 
       sheetNames.forEach((name, index) => {
         if (index > 0) pdf.addPage();
-        const rows = utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: '' });
+        const rows = utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: '', raw: false });
         if (!rows.length) {
           pdf.setFontSize(12);
           pdf.text(`Sheet: ${name} (empty)`, 40, 50);
@@ -48,7 +48,7 @@ export default function ExcelToPdf() {
         const head = rows[0].map((c) => String(c ?? ''));
         const body = rows.slice(1).map((row) => row.map((c) => String(c ?? '')));
 
-        pdf.autoTable({
+        autoTable(pdf, {
           head: [head],
           body,
           startY: 40,

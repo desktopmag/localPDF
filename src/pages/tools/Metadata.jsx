@@ -2,36 +2,44 @@ import React, { useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
 import SelectedFilePreview from '@/components/SelectedFilePreview';
-import ToolShell, { PrimaryButton, ResetButton, OptionCard } from '@/components/ToolShell';
+import ToolShell, { PrimaryButton, ResetButton, OptionCard, ErrorNote } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
 import { formatBytes } from '@/lib/pdfUtils';
-import { PDFDocument } from 'pdf-lib';
+import { loadPdfDoc, friendlyMessage } from '@/lib/pdfSafe';
 import { usePdfToolHandoff } from '@/hooks/usePdfToolHandoff';
 
 export default function Metadata() {
   const [file, setFile] = useState(null);
   const [meta, setMeta] = useState({ title: '', author: '', subject: '', keywords: '', creator: '' });
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
 
   async function onFile(f) {
-    setFile(f);
-    const doc = await PDFDocument.load(await f.arrayBuffer(), { ignoreEncryption: true });
-    setMeta({
-      title: doc.getTitle() || '',
-      author: doc.getAuthor() || '',
-      subject: doc.getSubject() || '',
-      keywords: (doc.getKeywords() || '').toString(),
-      creator: doc.getCreator() || '',
-    });
+    setError(null);
+    try {
+      const doc = await loadPdfDoc(f);
+      setFile(f);
+      setMeta({
+        title: doc.getTitle() || '',
+        author: doc.getAuthor() || '',
+        subject: doc.getSubject() || '',
+        keywords: (doc.getKeywords() || '').toString(),
+        creator: doc.getCreator() || '',
+      });
+    } catch (e) {
+      setFile(null);
+      setError(friendlyMessage(e));
+    }
   }
 
   usePdfToolHandoff('metadata', onFile);
 
   async function save() {
     setBusy(true);
+    setError(null);
     try {
-      const doc = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+      const doc = await loadPdfDoc(file);
       doc.setTitle(meta.title);
       doc.setAuthor(meta.author);
       doc.setSubject(meta.subject);
@@ -41,6 +49,8 @@ export default function Metadata() {
       doc.setModificationDate(new Date());
       const bytes = await doc.save();
       setResult({ blob: new Blob([bytes], { type: 'application/pdf' }), name: 'metadata-updated.pdf', size: bytes.byteLength });
+    } catch (e) {
+      setError(friendlyMessage(e));
     } finally {
       setBusy(false);
     }
@@ -59,7 +69,10 @@ export default function Metadata() {
       {result ? (
         <DownloadResult toolSlug="metadata" result={result} onReset={() => { setFile(null); setResult(null); }} />
       ) : !file ? (
-        <FileDropzone onFiles={(f) => onFile(f[0])} accept="application/pdf" label="Drop a PDF to edit" />
+        <div className="space-y-4">
+          {error && <ErrorNote>{error}</ErrorNote>}
+          <FileDropzone onFiles={(f) => onFile(f[0])} accept="application/pdf" label="Drop a PDF to edit" />
+        </div>
       ) : (
         <div className="space-y-5">
           <SelectedFilePreview
@@ -80,6 +93,8 @@ export default function Metadata() {
               </OptionCard>
             ))}
           </div>
+
+          {error && <ErrorNote>{error}</ErrorNote>}
 
           <div className="flex gap-3 pt-1">
             <PrimaryButton onClick={save} busy={busy}>

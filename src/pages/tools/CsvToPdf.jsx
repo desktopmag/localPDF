@@ -25,9 +25,9 @@ export default function CsvToPdf() {
     setError(null);
     try {
       const [{ read, utils }, { jsPDF }] = await Promise.all([import('xlsx'), import('jspdf')]);
-      await import('jspdf-autotable');
+      const { default: autoTable } = await import('jspdf-autotable');
 
-      const wb = read(await file.arrayBuffer(), { type: 'array' });
+      const wb = read((await file.text()).replace(/^\uFEFF/, ''), { type: 'string', raw: true });
       const sheet = wb.Sheets[wb.SheetNames[0]];
       const rows = utils.sheet_to_json(sheet, { header: 1, defval: '' });
       if (!rows.length) throw new Error('This CSV file is empty.');
@@ -36,7 +36,7 @@ export default function CsvToPdf() {
       const head = rows[0].map((c) => String(c ?? ''));
       const body = rows.slice(1).map((row) => row.map((c) => String(c ?? '')));
 
-      pdf.autoTable({
+      autoTable(pdf, {
         head: [head],
         body: body.length ? body : undefined,
         startY: 40,

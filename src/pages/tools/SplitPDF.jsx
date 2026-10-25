@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
 import SelectedFilePreview from '@/components/SelectedFilePreview';
-import ToolShell, { PrimaryButton, ResetButton, OptionCard } from '@/components/ToolShell';
+import ToolShell, { PrimaryButton, ResetButton, OptionCard, ErrorNote } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
 import { formatBytes } from '@/lib/pdfUtils';
 import { PDFDocument } from 'pdf-lib';
 import JSZip from 'jszip';
+import { loadPdfDoc, friendlyMessage } from '@/lib/pdfSafe';
 import { usePdfToolHandoff } from '@/hooks/usePdfToolHandoff';
 
 export default function SplitPDF() {
@@ -16,13 +17,20 @@ export default function SplitPDF() {
   const [ranges, setRanges] = useState('1-1');
   const [every, setEvery] = useState(1);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
 
   async function onFile(f) {
-    setFile(f);
-    const doc = await PDFDocument.load(await f.arrayBuffer(), { ignoreEncryption: true });
-    setPageCount(doc.getPageCount());
-    setRanges(`1-${doc.getPageCount()}`);
+    setError(null);
+    try {
+      const doc = await loadPdfDoc(f);
+      setFile(f);
+      setPageCount(doc.getPageCount());
+      setRanges(`1-${doc.getPageCount()}`);
+    } catch (e) {
+      setFile(null);
+      setError(friendlyMessage(e));
+    }
   }
 
   usePdfToolHandoff('split', onFile);
@@ -48,8 +56,9 @@ export default function SplitPDF() {
 
   async function split() {
     setBusy(true);
+    setError(null);
     try {
-      const src = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+      const src = await loadPdfDoc(file);
       const total = src.getPageCount();
       let groups = [];
       if (mode === 'each') {
@@ -80,7 +89,7 @@ export default function SplitPDF() {
         setResult({ blob, name: 'split_pages.zip', size: blob.size });
       }
     } catch (e) {
-      alert(e.message);
+      setError(friendlyMessage(e));
     } finally {
       setBusy(false);
     }
@@ -91,7 +100,10 @@ export default function SplitPDF() {
       {result ? (
         <DownloadResult toolSlug="split" result={result} onReset={() => { setFile(null); setResult(null); }} />
       ) : !file ? (
-        <FileDropzone onFiles={(f) => onFile(f[0])} accept="application/pdf" label="Drop a PDF to split" />
+        <div className="space-y-4">
+          {error && <ErrorNote>{error}</ErrorNote>}
+          <FileDropzone onFiles={(f) => onFile(f[0])} accept="application/pdf" label="Drop a PDF to split" />
+        </div>
       ) : (
         <div className="space-y-5">
           <SelectedFilePreview
@@ -132,6 +144,8 @@ export default function SplitPDF() {
                 className="w-24 rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm text-foreground outline-none focus:border-primary" />
             </OptionCard>
           )}
+
+          {error && <ErrorNote>{error}</ErrorNote>}
 
           <div className="flex gap-3 pt-1">
             <PrimaryButton onClick={split} busy={busy}>

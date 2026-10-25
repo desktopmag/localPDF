@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
 import SelectedFilePreview from '@/components/SelectedFilePreview';
-import ToolShell, { PrimaryButton, ResetButton, OptionCard } from '@/components/ToolShell';
+import ToolShell, { PrimaryButton, ResetButton, OptionCard, ErrorNote } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
-import { formatBytes, PDFDocument, degrees } from '@/lib/pdfUtils';
+import { formatBytes, degrees } from '@/lib/pdfUtils';
+import { loadPdfDoc, friendlyMessage } from '@/lib/pdfSafe';
 import { usePdfToolHandoff } from '@/hooks/usePdfToolHandoff';
 
 const ANGLES = [
@@ -19,14 +20,16 @@ export default function RotatePDF() {
   const [scope, setScope] = useState('all');
   const [pageNum, setPageNum] = useState(1);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
 
   usePdfToolHandoff('rotate', setFile);
 
   async function apply() {
     setBusy(true);
+    setError(null);
     try {
-      const doc = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+      const doc = await loadPdfDoc(file);
       const pages = doc.getPages();
       if (scope === 'all') {
         pages.forEach((page) => {
@@ -45,6 +48,8 @@ export default function RotatePDF() {
         name: file.name.replace(/\.pdf$/i, '') + '-rotated.pdf',
         size: bytes.byteLength,
       });
+    } catch (e) {
+      setError(friendlyMessage(e));
     } finally {
       setBusy(false);
     }
@@ -111,6 +116,9 @@ export default function RotatePDF() {
               />
             )}
           </OptionCard>
+
+          {error && <ErrorNote>{error}</ErrorNote>}
+
 
           <div className="flex gap-3 pt-1">
             <PrimaryButton onClick={apply} busy={busy} disabled={busy}>

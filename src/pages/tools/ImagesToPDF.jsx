@@ -2,15 +2,18 @@ import React, { useState } from 'react';
 import { ArrowUp, ArrowDown, Plus, Download, Loader2 } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
 import SelectedFilePreview from '@/components/SelectedFilePreview';
-import ToolShell, { PrimaryButton, ResetButton, OptionCard } from '@/components/ToolShell';
+import ToolShell, { PrimaryButton, ResetButton, OptionCard, ErrorNote } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
 import { PDFDocument } from 'pdf-lib';
+import { friendlyMessage } from '@/lib/pdfSafe';
+import { embedImageFile } from '@/lib/imageEmbed';
 
 export default function ImagesToPDF() {
   const [images, setImages] = useState([]);
   const [pageSize, setPageSize] = useState('fit');
   const [orientation, setOrientation] = useState('portrait');
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
 
   function add(list) {
@@ -47,16 +50,11 @@ export default function ImagesToPDF() {
 
   async function build() {
     setBusy(true);
+    setError(null);
     try {
       const doc = await PDFDocument.create();
       for (const img of images) {
-        const bytes = await img.file.arrayBuffer();
-        let embedded;
-        if (img.file.type === 'image/png' || img.file.name.toLowerCase().endsWith('.png')) {
-          embedded = await doc.embedPng(bytes);
-        } else {
-          embedded = await doc.embedJpg(bytes);
-        }
+        const embedded = await embedImageFile(doc, img.file);
         const { width, height } = embedded.size();
         let pw, ph;
         if (pageSize === 'fit') {
@@ -77,17 +75,19 @@ export default function ImagesToPDF() {
       }
       const out = await doc.save();
       setResult({ blob: new Blob([out], { type: 'application/pdf' }), name: 'images.pdf', size: out.byteLength });
+    } catch (e) {
+      setError(friendlyMessage(e));
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <ToolShell title="JPG to PDF" description="Turn JPG and PNG images into a single PDF, in the order you choose." lib="pdf-lib.js">
+    <ToolShell title="JPG to PDF" description="Turn JPG, PNG, WebP and GIF images into a single PDF, in the order you choose." lib="pdf-lib.js">
       {result ? (
         <DownloadResult toolSlug="images-to-pdf" result={result} onReset={reset} />
       ) : images.length === 0 ? (
-        <FileDropzone onFiles={add} accept="image/png,image/jpeg" multiple label="Drop images to convert" hint="JPG or PNG — reorder them below" />
+        <FileDropzone onFiles={add} accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" multiple label="Drop images to convert" hint="JPG, PNG, WebP, GIF or BMP — reorder them below" />
       ) : (
         <div className="space-y-5">
           <div className="flex flex-wrap gap-4">
@@ -112,7 +112,7 @@ export default function ImagesToPDF() {
 
           <label className="inline-flex cursor-pointer items-center gap-2 font-mono text-xs uppercase tracking-widest text-muted-foreground hover:text-primary">
             <Plus className="h-4 w-4" /> Add more
-            <input type="file" accept="image/png,image/jpeg" multiple className="hidden" onChange={(e) => { add(Array.from(e.target.files)); e.target.value = ''; }} />
+            <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" multiple className="hidden" onChange={(e) => { add(Array.from(e.target.files)); e.target.value = ''; }} />
           </label>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -139,6 +139,9 @@ export default function ImagesToPDF() {
               </OptionCard>
             )}
           </div>
+
+          {error && <ErrorNote>{error}</ErrorNote>}
+
 
           <div className="flex gap-3 pt-1">
             <PrimaryButton onClick={build} disabled={!images.length} busy={busy}>

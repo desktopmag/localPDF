@@ -5,6 +5,7 @@ import SelectedFilePreview from '@/components/SelectedFilePreview';
 import ToolShell, { PrimaryButton, ResetButton, OptionCard } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
 import { formatBytes } from '@/lib/pdfUtils';
+import { sanitizeForRender } from '@/lib/safeHtml';
 import { createOffscreenHost, domElementToPdfBytes } from '@/lib/domToPdf';
 
 export default function HtmlToPdf() {
@@ -27,7 +28,7 @@ export default function HtmlToPdf() {
       const host = createOffscreenHost();
       const body = document.createElement('div');
       // Inline the file's HTML. External stylesheets/scripts won't load — this is a basic local renderer.
-      body.innerHTML = text;
+      body.innerHTML = sanitizeForRender(text);
       host.appendChild(body);
       document.body.appendChild(host);
 

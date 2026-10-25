@@ -3,10 +3,11 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Trash2, Download, Loader2, X } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
 import SelectedFilePreview from '@/components/SelectedFilePreview';
-import ToolShell, { PrimaryButton, ResetButton } from '@/components/ToolShell';
+import ToolShell, { PrimaryButton, ResetButton, ErrorNote } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
 import { getPdfjs, renderPageCanvas, formatBytes } from '@/lib/pdfUtils';
 import { PDFDocument } from 'pdf-lib';
+import { loadPdfDoc, friendlyMessage } from '@/lib/pdfSafe';
 import { usePdfToolHandoff } from '@/hooks/usePdfToolHandoff';
 
 export default function OrganizePages() {
@@ -15,12 +16,15 @@ export default function OrganizePages() {
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
 
   async function load(f) {
-    setFile(f);
+    setError(null);
     setLoading(true);
     try {
+      await loadPdfDoc(f); // rejects encrypted / broken files with a clear message before we render anything
+      setFile(f);
       const doc = await getPdfjs(f);
       const t = [];
       const p = [];
@@ -32,6 +36,9 @@ export default function OrganizePages() {
       await doc.destroy();
       setThumbs(t);
       setPages(p);
+    } catch (e) {
+      setFile(null);
+      setError(friendlyMessage(e));
     } finally {
       setLoading(false);
     }
@@ -56,14 +63,17 @@ export default function OrganizePages() {
 
   async function exportPdf() {
     setBusy(true);
+    setError(null);
     try {
-      const src = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+      const src = await loadPdfDoc(file);
       const ordered = pages.map((p) => p.id - 1);
       const out = await PDFDocument.create();
       const copied = await out.copyPages(src, ordered);
       copied.forEach((page) => out.addPage(page));
       const bytes = await out.save();
       setResult({ blob: new Blob([bytes], { type: 'application/pdf' }), name: 'organized.pdf', size: bytes.byteLength });
+    } catch (e) {
+      setError(friendlyMessage(e));
     } finally {
       setBusy(false);
     }
@@ -74,7 +84,10 @@ export default function OrganizePages() {
       {result ? (
         <DownloadResult toolSlug="organize" result={result} onReset={reset} />
       ) : !file ? (
-        <FileDropzone onFiles={(f) => load(f[0])} accept="application/pdf" label="Drop a PDF to organize" />
+        <div className="space-y-4">
+          {error && <ErrorNote>{error}</ErrorNote>}
+          <FileDropzone onFiles={(f) => load(f[0])} accept="application/pdf" label="Drop a PDF to organize" />
+        </div>
       ) : loading ? (
         <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin text-primary" /> Rendering page thumbnails…
@@ -123,6 +136,8 @@ export default function OrganizePages() {
           </DragDropContext>
 
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Tip: drag cards to reorder · use the trash icon to delete a page.</p>
+
+          {error && <ErrorNote>{error}</ErrorNote>}
 
           <div className="flex gap-3 pt-1">
             <PrimaryButton onClick={exportPdf} disabled={pages.length === 0} busy={busy}>

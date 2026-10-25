@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
 import SelectedFilePreview from '@/components/SelectedFilePreview';
-import ToolShell, { PrimaryButton, ResetButton, OptionCard } from '@/components/ToolShell';
+import ToolShell, { PrimaryButton, ResetButton, OptionCard, ErrorNote } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
 import { formatBytes } from '@/lib/pdfUtils';
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { StandardFonts, rgb } from 'pdf-lib';
+import { loadPdfDoc, friendlyMessage } from '@/lib/pdfSafe';
+import { pageFrame, drawTextVisible } from '@/lib/pdfPlace';
 import { usePdfToolHandoff } from '@/hooks/usePdfToolHandoff';
 
 export default function PageNumbers() {
@@ -14,32 +16,33 @@ export default function PageNumbers() {
   const [start, setStart] = useState(1);
   const [size, setSize] = useState(12);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
 
   usePdfToolHandoff('page-numbers', setFile);
 
   async function apply() {
     setBusy(true);
+    setError(null);
     try {
-      const doc = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+      const doc = await loadPdfDoc(file);
       const font = await doc.embedFont(StandardFonts.Helvetica);
       const pages = doc.getPages();
       pages.forEach((page, i) => {
-        const { width, height } = page.getSize();
-        const num = start + i;
-        const txt = String(num);
-        const tw = font.widthOfTextAtSize(txt, size);
+        const { width, height } = pageFrame(page);
+        const txt = String(start + i);
         const margin = 24;
-        let x, y;
-        if (position.startsWith('top')) y = height - margin;
-        else y = margin;
-        if (position.endsWith('left')) x = margin;
-        else if (position.endsWith('right')) x = width - margin - tw;
-        else x = (width - tw) / 2;
-        page.drawText(txt, { x, y, size, font, color: rgb(0.2, 0.2, 0.2) });
+        const fy = position.startsWith('top') ? height - margin : margin;
+        let fx = width / 2;
+        let align = 'center';
+        if (position.endsWith('left')) { fx = margin; align = 'left'; }
+        else if (position.endsWith('right')) { fx = width - margin; align = 'right'; }
+        drawTextVisible(page, txt, { font, size, color: rgb(0.2, 0.2, 0.2), fx, fy, align });
       });
       const bytes = await doc.save();
       setResult({ blob: new Blob([bytes], { type: 'application/pdf' }), name: 'numbered.pdf', size: bytes.byteLength });
+    } catch (e) {
+      setError(friendlyMessage(e));
     } finally {
       setBusy(false);
     }
@@ -80,6 +83,9 @@ export default function PageNumbers() {
               <input type="range" min="8" max="24" step="1" value={size} onChange={(e) => setSize(parseInt(e.target.value))} className="w-full accent-primary" />
             </OptionCard>
           </div>
+
+          {error && <ErrorNote>{error}</ErrorNote>}
+
 
           <div className="flex gap-3 pt-1">
             <PrimaryButton onClick={apply} busy={busy}>

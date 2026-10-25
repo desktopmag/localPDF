@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
 import SelectedFilePreview from '@/components/SelectedFilePreview';
-import ToolShell, { PrimaryButton, ResetButton, OptionCard } from '@/components/ToolShell';
+import ToolShell, { PrimaryButton, ResetButton, OptionCard, ErrorNote } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
-import { formatBytes, PDFDocument, StandardFonts, rgb } from '@/lib/pdfUtils';
+import { formatBytes, StandardFonts, rgb } from '@/lib/pdfUtils';
+import { loadPdfDoc, friendlyMessage, assertEncodable } from '@/lib/pdfSafe';
+import { pageFrame, drawTextVisible } from '@/lib/pdfPlace';
 import { usePdfToolHandoff } from '@/hooks/usePdfToolHandoff';
 
 export default function HeadersFooters() {
@@ -14,22 +16,24 @@ export default function HeadersFooters() {
   const [showPageNumbers, setShowPageNumbers] = useState(true);
   const [size, setSize] = useState(9);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
 
   usePdfToolHandoff('headers-footers', setFile);
 
   async function apply() {
     setBusy(true);
+    setError(null);
     try {
-      const doc = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+      const doc = await loadPdfDoc(file);
       const font = await doc.embedFont(StandardFonts.Helvetica);
       const margin = 28;
+      assertEncodable(font, `${header}${footer}`);
       doc.getPages().forEach((page, i) => {
-        const { width, height } = page.getSize();
+        const { width, height } = pageFrame(page);
         const color = rgb(0.35, 0.35, 0.35);
         if (header.trim()) {
-          const tw = font.widthOfTextAtSize(header, size);
-          page.drawText(header, { x: (width - tw) / 2, y: height - margin, size, font, color });
+          drawTextVisible(page, header, { font, size, color, fx: width / 2, fy: height - margin, align: 'center' });
         }
         let footerLine = footer.trim();
         if (showPageNumbers) {
@@ -37,8 +41,7 @@ export default function HeadersFooters() {
           footerLine = footerLine ? `${footerLine}  ·  ${num}` : num;
         }
         if (footerLine) {
-          const tw = font.widthOfTextAtSize(footerLine, size);
-          page.drawText(footerLine, { x: (width - tw) / 2, y: margin, size, font, color });
+          drawTextVisible(page, footerLine, { font, size, color, fx: width / 2, fy: margin, align: 'center' });
         }
       });
       const bytes = await doc.save();
@@ -47,6 +50,8 @@ export default function HeadersFooters() {
         name: file.name.replace(/\.pdf$/i, '') + '-headers.pdf',
         size: bytes.byteLength,
       });
+    } catch (e) {
+      setError(friendlyMessage(e));
     } finally {
       setBusy(false);
     }
@@ -96,6 +101,9 @@ export default function HeadersFooters() {
           <OptionCard label={`Font size — ${size}px`}>
             <input type="range" min="7" max="14" value={size} onChange={(e) => setSize(parseInt(e.target.value, 10))} className="w-full accent-primary" />
           </OptionCard>
+
+          {error && <ErrorNote>{error}</ErrorNote>}
+
 
           <div className="flex gap-3 pt-1">
             <PrimaryButton onClick={apply} busy={busy} disabled={busy || (!header.trim() && !footer.trim() && !showPageNumbers)}>

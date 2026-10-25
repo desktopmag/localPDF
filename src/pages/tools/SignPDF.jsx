@@ -2,10 +2,11 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Download, Loader2, Eraser } from 'lucide-react';
 import FileDropzone from '@/components/FileDropzone';
 import SelectedFilePreview from '@/components/SelectedFilePreview';
-import ToolShell, { PrimaryButton, ResetButton, OptionCard } from '@/components/ToolShell';
+import ToolShell, { PrimaryButton, ResetButton, OptionCard, ErrorNote } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
 import { formatBytes, getPdfjs, renderPageCanvas } from '@/lib/pdfUtils';
-import { PDFDocument } from 'pdf-lib';
+import { loadPdfDoc, friendlyMessage } from '@/lib/pdfSafe';
+import { pageFrame, drawImageVisible } from '@/lib/pdfPlace';
 import { usePdfToolHandoff } from '@/hooks/usePdfToolHandoff';
 
 export default function SignPDF() {
@@ -16,17 +17,18 @@ export default function SignPDF() {
   const [position, setPosition] = useState('bottom-right');
   const [widthMM, setWidthMM] = useState(60);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
   const canvasRef = useRef(null);
   const drawing = useRef(false);
   const hasInk = useRef(false);
+  const bounds = useRef({ x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity });
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // stay transparent so the signature never hides page content
     ctx.strokeStyle = '#0A0A0C';
     ctx.lineWidth = 2.5;
     ctx.lineCap = 'round';
@@ -34,9 +36,14 @@ export default function SignPDF() {
   }, []);
 
   function pos(e) {
-    const rect = canvasRef.current.getBoundingClientRect();
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
     const p = e.touches ? e.touches[0] : e;
-    return { x: p.clientX - rect.left, y: p.clientY - rect.top };
+    // The canvas is drawn at one size and displayed at another, so convert CSS pixels to canvas pixels.
+    return {
+      x: ((p.clientX - rect.left) * canvas.width) / rect.width,
+      y: ((p.clientY - rect.top) * canvas.height) / rect.height,
+    };
   }
   function start(e) {
     e.preventDefault();
@@ -54,43 +61,64 @@ export default function SignPDF() {
     ctx.lineTo(x, y);
     ctx.stroke();
     hasInk.current = true;
+    const b = bounds.current;
+    b.x0 = Math.min(b.x0, x); b.y0 = Math.min(b.y0, y); b.x1 = Math.max(b.x1, x); b.y1 = Math.max(b.y1, y);
   }
   function end() { drawing.current = false; }
   function clear() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     hasInk.current = false;
+    bounds.current = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
   }
 
   async function onFile(f) {
-    setFile(f);
-    const doc = await PDFDocument.load(await f.arrayBuffer(), { ignoreEncryption: true });
-    setPageCount(doc.getPageCount());
-    setPageNum(1);
-    const pdfjs = await getPdfjs(f);
-    const t = [];
-    for (let i = 1; i <= pdfjs.numPages; i++) {
-      const c = await renderPageCanvas(pdfjs, i, 0.3);
-      t.push(c.toDataURL('image/jpeg', 0.7));
+    setError(null);
+    try {
+      const doc = await loadPdfDoc(f);
+      setFile(f);
+      setPageCount(doc.getPageCount());
+      setPageNum(1);
+      const pdfjs = await getPdfjs(f);
+      const t = [];
+      for (let i = 1; i <= pdfjs.numPages; i++) {
+        const c = await renderPageCanvas(pdfjs, i, 0.3);
+        t.push(c.toDataURL('image/jpeg', 0.7));
+      }
+      await pdfjs.destroy();
+      setPageThumbs(t);
+    } catch (e) {
+      setFile(null);
+      setError(friendlyMessage(e));
     }
-    await pdfjs.destroy();
-    setPageThumbs(t);
   }
 
   usePdfToolHandoff('sign', onFile);
 
   async function sign() {
-    if (!hasInk.current) { alert('Draw your signature first.'); return; }
+    if (!hasInk.current) { setError('Draw your signature first.'); return; }
     setBusy(true);
+    setError(null);
     try {
-      const sigDataUrl = canvasRef.current.toDataURL('image/png');
+      // Crop to the ink (plus a little padding) so the chosen width is the width of the signature itself.
+      const src = canvasRef.current;
+      const b = bounds.current;
+      const pad = 6;
+      const sx = Math.max(0, Math.floor(b.x0 - pad));
+      const sy = Math.max(0, Math.floor(b.y0 - pad));
+      const sw = Math.min(src.width - sx, Math.ceil(b.x1 - b.x0 + pad * 2));
+      const sh = Math.min(src.height - sy, Math.ceil(b.y1 - b.y0 + pad * 2));
+      const crop = document.createElement('canvas');
+      crop.width = Math.max(1, sw);
+      crop.height = Math.max(1, sh);
+      crop.getContext('2d').drawImage(src, sx, sy, crop.width, crop.height, 0, 0, crop.width, crop.height);
+      const sigDataUrl = crop.toDataURL('image/png');
       const sigBytes = Uint8Array.from(atob(sigDataUrl.split(',')[1]), (c) => c.charCodeAt(0));
-      const doc = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+      const doc = await loadPdfDoc(file);
       const png = await doc.embedPng(sigBytes);
       const page = doc.getPage(pageNum - 1);
-      const { width, height } = page.getSize();
+      const { width, height } = pageFrame(page);
       const targetW = (widthMM / 25.4) * 72;
       const scale = targetW / png.width;
       const w = png.width * scale;
@@ -98,13 +126,16 @@ export default function SignPDF() {
       const margin = 24;
       let x, y;
       if (position.startsWith('top')) y = height - margin - h;
+      else if (position.startsWith('middle')) y = (height - h) / 2;
       else y = margin;
       if (position.endsWith('left')) x = margin;
       else if (position.endsWith('right')) x = width - margin - w;
       else x = (width - w) / 2;
-      page.drawImage(png, { x, y, width: w, height: h });
+      drawImageVisible(page, png, { fx: x, fy: y, width: w, height: h });
       const bytes = await doc.save();
       setResult({ blob: new Blob([bytes], { type: 'application/pdf' }), name: 'signed.pdf', size: bytes.byteLength });
+    } catch (e) {
+      setError(friendlyMessage(e));
     } finally {
       setBusy(false);
     }
@@ -115,7 +146,10 @@ export default function SignPDF() {
       {result ? (
         <DownloadResult toolSlug="sign" result={result} onReset={() => { setFile(null); setResult(null); }} />
       ) : !file ? (
-        <FileDropzone onFiles={(f) => onFile(f[0])} accept="application/pdf" label="Drop a PDF to sign" />
+        <div className="space-y-4">
+          {error && <ErrorNote>{error}</ErrorNote>}
+          <FileDropzone onFiles={(f) => onFile(f[0])} accept="application/pdf" label="Drop a PDF to sign" />
+        </div>
       ) : (
         <div className="space-y-5">
           <SelectedFilePreview
@@ -176,6 +210,8 @@ export default function SignPDF() {
               <img src={pageThumbs[pageNum - 1]} alt={`Page ${pageNum}`} className="mx-auto max-h-72 rounded object-contain" />
             </div>
           )}
+
+          {error && <ErrorNote>{error}</ErrorNote>}
 
           <div className="flex gap-3 pt-1">
             <PrimaryButton onClick={sign} busy={busy}>
