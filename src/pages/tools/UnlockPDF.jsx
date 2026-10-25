@@ -4,7 +4,7 @@ import FileDropzone from '@/components/FileDropzone';
 import SelectedFilePreview from '@/components/SelectedFilePreview';
 import ToolShell, { PrimaryButton, ResetButton, OptionCard } from '@/components/ToolShell';
 import DownloadResult from '@/components/DownloadResult';
-import { formatBytes, PDFDocument } from '@/lib/pdfUtils';
+import { formatBytes } from '@/lib/pdfUtils';
 import { usePdfToolHandoff } from '@/hooks/usePdfToolHandoff';
 
 export default function UnlockPDF() {
@@ -20,14 +20,14 @@ export default function UnlockPDF() {
     setBusy(true);
     setError(null);
     try {
-      const bytesIn = await file.arrayBuffer();
-      let doc;
+      const { decryptPdf, WrongPasswordError } = await import('@/lib/pdfEncryption'); // lazy: loads qpdf WASM only now
+      let bytes;
       try {
-        doc = await PDFDocument.load(bytesIn, password ? { password } : {});
-      } catch {
-        throw new Error('Wrong password or this PDF is not encrypted.');
+        bytes = await decryptPdf(new Uint8Array(await file.arrayBuffer()), password);
+      } catch (e) {
+        if (e instanceof WrongPasswordError) throw new Error('Wrong password. Check it and try again.');
+        throw e;
       }
-      const bytes = await doc.save();
       setResult({
         blob: new Blob([bytes], { type: 'application/pdf' }),
         name: file.name.replace(/\.pdf$/i, '') + '-unlocked.pdf',
@@ -43,13 +43,13 @@ export default function UnlockPDF() {
   return (
     <ToolShell
       title="Unlock PDF"
-      description="Open a password-protected PDF and save an unencrypted copy — the password never leaves your device."
-      lib="pdf-lib.js"
+      description="Remove the password from a PDF (AES-256, AES-128, RC4) and save an unprotected copy. The password never leaves your device."
+      lib="qpdf (WASM) · AES-256"
     >
       {result ? (
         <DownloadResult toolSlug="unlock" result={result} onReset={() => { setFile(null); setResult(null); setPassword(''); }} />
       ) : !file ? (
-        <FileDropzone onFiles={(f) => { setFile(f[0]); setError(null); }} accept="application/pdf" label="Drop a locked PDF" hint="You must know the current password" />
+        <FileDropzone onFiles={(f) => { setFile(f[0]); setError(null); }} accept="application/pdf" label="Drop a locked PDF" hint="You need the current password (user or owner)" />
       ) : (
         <div className="space-y-5">
           <SelectedFilePreview
@@ -63,7 +63,7 @@ export default function UnlockPDF() {
             <input
               type="password"
               autoComplete="current-password"
-              placeholder="PDF open password"
+              placeholder="PDF password (leave empty if it only has restrictions)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full max-w-sm rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
@@ -71,14 +71,14 @@ export default function UnlockPDF() {
           </OptionCard>
 
           {error && (
-            <div className="flex items-start gap-2 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+            <div role="alert" className="flex items-start gap-2 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           <div className="flex gap-3 pt-1">
-            <PrimaryButton onClick={apply} busy={busy} disabled={busy || !password}>
+            <PrimaryButton onClick={apply} busy={busy} disabled={busy}>
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Remove lock &amp; Download
             </PrimaryButton>
             <ResetButton onClick={() => setFile(null)}>Choose another</ResetButton>

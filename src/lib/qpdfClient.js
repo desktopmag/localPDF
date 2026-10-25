@@ -54,7 +54,7 @@ export async function qpdfQuery(input, args, opts) {
 
 function lastError(log = []) {
   const line = [...log].reverse().find((l) => /error|invalid password|not a pdf|unable|can't|cannot/i.test(l)) || log[log.length - 1];
-  return line ? line.replace(/^qpdf: /, '') : '';
+  return line ? line.replace(/^(qpdf|this\.program): /, '').replace(/^\/in\.pdf: /, '') : '';
 }
 
 export const isIsolated = () => typeof SharedArrayBuffer !== 'undefined' && !!globalThis.crossOriginIsolated;

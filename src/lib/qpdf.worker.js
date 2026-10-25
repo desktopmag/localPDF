@@ -9,13 +9,15 @@
 self.onmessage = async ({ data }) => {
   const { base, args, input, mode = 'transform' } = data;
   const log = [];
+  // This qpdf build ignores Module.print/printErr and writes to console.log/console.error (bound at
+  // init time), so capture them by swapping the worker's console before init.
+  console.log = (...a) => log.push(a.join(' '));
+  console.error = (...a) => log.push(a.join(' '));
   try {
     const { default: init } = await import(/* @vite-ignore */ `${base}/qpdf.js`);
     const mod = await init({
       noInitialRun: true,
       locateFile: (file) => `${base}/${file}`,
-      print: (t) => log.push(String(t)),
-      printErr: (t) => log.push(String(t)),
     });
     mod.FS.writeFile('/in.pdf', input);
     const exitCode = mod.callMain(args);

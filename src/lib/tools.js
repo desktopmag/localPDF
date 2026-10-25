@@ -11,7 +11,7 @@ export const tools = [
   { slug: 'organize', title: 'Organize Pages', desc: 'Drag to reorder and delete pages with live thumbnails.', icon: LayoutGrid, category: 'Organize', lib: 'pdf.js + pdf-lib' },
   { slug: 'rotate', title: 'Rotate PDF', desc: 'Rotate all pages or one page by 90°, 180°, or 270°.', icon: RotateCw, category: 'Organize', lib: 'pdf-lib.js' },
   { slug: 'delete', title: 'Delete Pages', desc: 'Remove unwanted pages and keep the rest.', icon: Trash2, category: 'Organize', lib: 'pdf-lib.js' },
-  { slug: 'compress', title: 'Compress PDF', desc: 'Re-pack or rasterize pages to shrink file size, locally.', icon: Minimize2, category: 'Optimize', lib: 'pdf.js + pdf-lib' },
+  { slug: 'compress', title: 'Compress PDF', desc: 'Shrink PDFs with mozjpeg image recompression and qpdf, locally.', icon: Minimize2, category: 'Optimize', lib: 'qpdf + mozjpeg (WASM)' },
   { slug: 'images-to-pdf', title: 'JPG to PDF', desc: 'Turn JPG and PNG images into a single PDF.', icon: FileImage, category: 'Convert', convertGroup: 'to-pdf', lib: 'pdf-lib.js' },
   { slug: 'docx-to-pdf', title: 'Word to PDF', desc: 'Convert .docx to PDF locally — basic layout, not a full Word print engine.', icon: FileText, category: 'Convert', convertGroup: 'to-pdf', lib: 'mammoth + html2canvas + jsPDF' },
   { slug: 'excel-to-pdf', title: 'Excel to PDF', desc: 'Export spreadsheet sheets as PDF tables (.xlsx, .csv).', icon: Sheet, category: 'Convert', convertGroup: 'to-pdf', lib: 'SheetJS + jsPDF' },
@@ -31,8 +31,8 @@ export const tools = [
   { slug: 'metadata', title: 'Edit Metadata', desc: 'Change title, author, subject and keywords embedded in the file.', icon: FileCog, category: 'Edit', lib: 'pdf-lib.js' },
   { slug: 'sign', title: 'Sign PDF', desc: 'Draw your signature and place it on any page.', icon: PenLine, category: 'Edit', lib: 'pdf-lib.js' },
   { slug: 'flatten', title: 'Flatten PDF', desc: 'Merge interactive form fields into static page content.', icon: Layers, category: 'Security', lib: 'pdf-lib.js' },
-  { slug: 'protect', title: 'Protect PDF', desc: 'Password-encrypt a PDF before you share it.', icon: Lock, category: 'Security', lib: 'pdf-lib.js' },
-  { slug: 'unlock', title: 'Unlock PDF', desc: 'Remove password protection when you know the open password.', icon: LockOpen, category: 'Security', lib: 'pdf-lib.js' },
+  { slug: 'protect', title: 'Protect PDF', desc: 'AES-256 password-encrypt a PDF before you share it.', icon: Lock, category: 'Security', lib: 'qpdf (WASM)' },
+  { slug: 'unlock', title: 'Unlock PDF', desc: 'Remove password protection when you know the password.', icon: LockOpen, category: 'Security', lib: 'qpdf (WASM)' },
 ];
 
 export const toolBySlug = (slug) => tools.find((t) => t.slug === slug);
