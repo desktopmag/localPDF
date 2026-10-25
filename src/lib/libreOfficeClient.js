@@ -1,8 +1,5 @@
 /** LibreOffice WASM — lazy WorkerBrowserConverter for Office → PDF (PPTX, PPT, ODP). */
 
-const LO_PKG_VERSION = '2.7.2';
-const UNPKG = `https://unpkg.com/@matbee/libreoffice-converter@${LO_PKG_VERSION}`;
-
 export function isCrossOriginIsolated() {
   return typeof globalThis.crossOriginIsolated === 'boolean' && globalThis.crossOriginIsolated;
 }
@@ -13,13 +10,17 @@ function wasmBaseUrl() {
     const b = String(custom).trim();
     return b.endsWith('/') ? b : `${b}/`;
   }
-  return `${UNPKG}/wasm/`;
+  // Same-origin by default: functions/libreoffice-wasm proxies the CDN files (Workers can't be cross-origin).
+  return `${import.meta.env.BASE_URL || '/'}libreoffice-wasm/`;
 }
 
 function browserWorkerUrl() {
   const custom = import.meta.env.VITE_LIBREOFFICE_WORKER_JS;
   if (custom && String(custom).trim()) return String(custom).trim();
-  return `${UNPKG}/dist/browser.worker.global.js`;
+  // A Worker must be same-origin (browsers throw SecurityError for a cross-origin worker URL), so the small
+  // (~110 KB, MPL-2.0, unmodified) worker script ships with the site, and the big wasm/data files are streamed
+  // through our own origin by functions/libreoffice-wasm.
+  return `${import.meta.env.BASE_URL || '/'}libreoffice-wasm/browser.worker.global.js`;
 }
 
 let converter = null;

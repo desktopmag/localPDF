@@ -108,19 +108,13 @@ No environment variables or backend are required for most tools.
 | Build command | `npm run build` |
 | Output directory | `dist` |
 
-By default the LibreOffice runtime loads from jsDelivr/unpkg CDN (~200 MB, browser-cached). For same-origin WASM (recommended if CDN CORP blocks COEP), run once locally:
+The LibreOffice runtime (~250 MB, browser-cached after first use) is too large for Pages static hosting (25 MiB per file), and
+browsers refuse cross-origin Workers, so a CDN URL can't be used directly. `functions/libreoffice-wasm/[[path]].js` is a
+Pages Function that streams the four public, versioned runtime files from unpkg through your own origin (allow-listed,
+edge-cached; documents never pass through it). The 110 KB `browser.worker.global.js` ships in `public/libreoffice-wasm/`.
 
-```bash
-npm run sync:libreoffice-wasm
-```
-
-Then build with:
-
-```bash
-VITE_LIBREOFFICE_WASM_BASE=/libreoffice-wasm/ VITE_LIBREOFFICE_WORKER_JS=/libreoffice-wasm/browser.worker.global.js npm run build
-```
-
-Large `soffice.wasm` / `soffice.data` files live under `public/libreoffice-wasm/` and are copied into `dist/` on build.
+To host the runtime yourself instead (for example from R2 behind the same origin), set `VITE_LIBREOFFICE_WASM_BASE` and
+`VITE_LIBREOFFICE_WORKER_JS` at build time.
 
 ## Project layout
 
