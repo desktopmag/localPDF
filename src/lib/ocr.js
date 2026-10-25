@@ -1,6 +1,6 @@
 /**
  * In-browser OCR (Tesseract.js, Apache-2.0). Everything is self-hosted from /ocr/ (see
- * scripts/sync-ocr-assets.mjs) and runs in a Web Worker: nothing is uploaded and no CDN is contacted.
+ * scripts/sync-wasm-assets.mjs) and runs in a Web Worker: nothing is uploaded and no CDN is contacted.
  * tesseract.js itself is imported lazily so it never touches the main bundle.
  */
 import { PDFDocument, StandardFonts } from 'pdf-lib';

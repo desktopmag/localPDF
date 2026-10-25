@@ -37,5 +37,6 @@ public/libreoffice-wasm/soffice.data
 
 .env
 
-# Self-hosted OCR runtime, copied from node_modules by scripts/sync-ocr-assets.mjs
+# Self-hosted WASM runtimes (OCR, qpdf), copied from node_modules by scripts/sync-wasm-assets.mjs
 public/ocr/
+public/qpdf/

@@ -56,7 +56,7 @@ both `REDIRECTS` (routeMeta) and `public/_redirects`.
 ## OCR tool
 
 `/tools/ocr` uses Tesseract.js, lazy-loaded. The worker, WASM core and English language data are self-hosted: `npm run dev`/`build`
-copy them from `node_modules` into `public/ocr/` (git-ignored) via `scripts/sync-ocr-assets.mjs`. Licence notes: `LICENSES/NOTES.md`.
+copy them from `node_modules` into `public/ocr/` (git-ignored) via `scripts/sync-wasm-assets.mjs`. Licence notes: `LICENSES/NOTES.md`.
 
 ## Deploy (static hosting)
 
