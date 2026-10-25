@@ -9,6 +9,7 @@ import { tools } from './tools.js';
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_TITLE,
+  OG_IMAGE_PATH,
   SITE_ACRONYM_EXPANDED,
   SITE_NAME,
   SITE_TAGLINE,
@@ -94,7 +95,7 @@ const softwareApplication = {
   url: SITE_URL,
   description: `${SITE_NAME}: ${SITE_TAGLINE}`,
   featureList: tools.map((t) => t.title).join(', '),
-  screenshot: absoluteUrl('/og-image.svg'),
+  screenshot: absoluteUrl(OG_IMAGE_PATH),
 };
 
 function breadcrumb(items) {

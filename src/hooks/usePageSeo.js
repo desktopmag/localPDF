@@ -4,7 +4,11 @@ import { getRouteMeta } from '@/lib/routeMeta';
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_TITLE,
+  OG_IMAGE_ALT,
+  OG_IMAGE_HEIGHT,
   OG_IMAGE_PATH,
+  OG_IMAGE_TYPE,
+  OG_IMAGE_WIDTH,
   SITE_NAME,
   absoluteUrl,
 } from '@/lib/site';
@@ -58,11 +62,16 @@ export default function usePageSeo({ title, description, path, noindex = false }
     upsertMeta('meta[property="og:description"]', { property: 'og:description', content: docDescription });
     upsertMeta('meta[property="og:url"]', { property: 'og:url', content: canonical });
     upsertMeta('meta[property="og:image"]', { property: 'og:image', content: ogImage });
+    upsertMeta('meta[property="og:image:type"]', { property: 'og:image:type', content: OG_IMAGE_TYPE });
+    upsertMeta('meta[property="og:image:width"]', { property: 'og:image:width', content: String(OG_IMAGE_WIDTH) });
+    upsertMeta('meta[property="og:image:height"]', { property: 'og:image:height', content: String(OG_IMAGE_HEIGHT) });
+    upsertMeta('meta[property="og:image:alt"]', { property: 'og:image:alt', content: OG_IMAGE_ALT });
 
     upsertMeta('meta[name="twitter:card"]', { name: 'twitter:card', content: 'summary_large_image' });
     upsertMeta('meta[name="twitter:title"]', { name: 'twitter:title', content: docTitle });
     upsertMeta('meta[name="twitter:description"]', { name: 'twitter:description', content: docDescription });
     upsertMeta('meta[name="twitter:image"]', { name: 'twitter:image', content: ogImage });
+    upsertMeta('meta[name="twitter:image:alt"]', { name: 'twitter:image:alt', content: OG_IMAGE_ALT });
 
     document.head.querySelectorAll('script[data-route-jsonld]').forEach((n) => n.remove());
     if (jsonLdKey) {

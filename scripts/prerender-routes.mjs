@@ -16,7 +16,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { REDIRECTS, getAllRoutePaths, getRouteMeta } from '../src/lib/routeMeta.js';
-import { OG_IMAGE_PATH, SITE_NAME, SITE_URL, absoluteUrl } from '../src/lib/site.js';
+import { OG_IMAGE_ALT, OG_IMAGE_HEIGHT, OG_IMAGE_PATH, OG_IMAGE_TYPE, OG_IMAGE_WIDTH, SITE_NAME, SITE_URL, absoluteUrl } from '../src/lib/site.js';
 import { tools } from '../src/lib/tools.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -34,8 +34,8 @@ function stripManagedTags(html) {
     .replace(/<meta\s+name="description"[^>]*>\s*/gi, '')
     .replace(/<meta\s+name="robots"[^>]*>\s*/gi, '')
     .replace(/<link\s+rel="canonical"[^>]*>\s*/gi, '')
-    .replace(/<meta\s+property="og:(title|description|url|type|image)"[^>]*>\s*/gi, '')
-    .replace(/<meta\s+name="twitter:(title|description|image|card)"[^>]*>\s*/gi, '');
+    .replace(/<meta\s+property="og:(title|description|url|type|image(:[a-z]+)?)"[^>]*>\s*/gi, '')
+    .replace(/<meta\s+name="twitter:(title|description|image(:alt)?|card)"[^>]*>\s*/gi, '');
 }
 
 function headBlock({ title, description, canonical, robots, jsonLd = [] }) {
@@ -50,10 +50,15 @@ function headBlock({ title, description, canonical, robots, jsonLd = [] }) {
     `<meta property="og:description" content="${esc(description)}" />`,
     canonical ? `<meta property="og:url" content="${esc(canonical)}" />` : '',
     `<meta property="og:image" content="${esc(image)}" />`,
+    `<meta property="og:image:type" content="${OG_IMAGE_TYPE}" />`,
+    `<meta property="og:image:width" content="${OG_IMAGE_WIDTH}" />`,
+    `<meta property="og:image:height" content="${OG_IMAGE_HEIGHT}" />`,
+    `<meta property="og:image:alt" content="${esc(OG_IMAGE_ALT)}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${esc(title)}" />`,
     `<meta name="twitter:description" content="${esc(description)}" />`,
     `<meta name="twitter:image" content="${esc(image)}" />`,
+    `<meta name="twitter:image:alt" content="${esc(OG_IMAGE_ALT)}" />`,
     ...jsonLd.map((b) => `<script type="application/ld+json" data-route-jsonld>${jsonForScript(b)}</script>`),
   ]
     .filter(Boolean)

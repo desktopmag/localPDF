@@ -38,6 +38,8 @@ Also note: the repository has **no LICENSE file** at all, so by default nobody e
 | **`@tesseract.js-data/eng`** (added) | MIT wrapper around Tesseract `tessdata_best` (Apache-2.0) | English language data (self-hosted) |
 | **`qpdf-wasm`** 0.1.0 (added) | Apache-2.0 wrapper; bundles **qpdf 12.x (Apache-2.0)**, plus libjpeg-turbo (IJG + BSD-3-Clause + zlib) and zlib (zlib licence) statically linked in the `.wasm`; Emscripten runtime (MIT) | Compress (structure optimisation), Protect/Unlock (AES-256); self-hosted from `public/qpdf/` |
 | **`@jsquash/jpeg`** 1.6.0 (added) | Apache-2.0 wrapper; **mozjpeg** (IJG + BSD-3-Clause + zlib; libjpeg-turbo based) compiled to WASM | Compress (JPEG recompression); WASM emitted as a hashed same-origin asset |
+| **`@resvg/resvg-js`** 2.6.2 (added, **devDependency**) | MPL-2.0 | Renders `scripts/assets/og-image.svg` to `public/og-image.png` (`npm run og:image`); not shipped to browsers |
+| Be Vietnam Pro, Space Mono (fonts used only in the OG image artwork) | SIL OFL 1.1 | Embedded as rendered pixels in `og-image.png`; font files are not distributed |
 
 The OCR, qpdf and mozjpeg additions are all permissive (Apache-2.0 / MIT) and are compatible with any outcome of the AGPL decision.
 When shipping, keep the Apache-2.0 notice / attribution for Tesseract and pdf.js (e.g. in an "Open-source licences" page).

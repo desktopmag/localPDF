@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1010 120) rotate(90) scale(520 640)">
+      <stop stop-color="#BBFF00" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#BBFF00" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" stroke="#FFFFFF" stroke-opacity="0.045" stroke-width="1"/>
+    </pattern>
+    <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#0B0B0D" stop-opacity="0"/>
+      <stop offset="1" stop-color="#0B0B0D" stop-opacity="0.9"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#0B0B0D"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <rect y="380" width="1200" height="250" fill="url(#fade)"/>
+
+  <!-- brand mark (same artwork as favicon.svg) -->
+  <g transform="translate(88 92) scale(3.5)">
+    <rect width="32" height="32" rx="6" fill="#BBFF00"/>
+    <g transform="translate(4 4)" stroke="#0B0B0D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v1"/>
+      <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+      <rect width="8" height="5" x="2" y="13" rx="1"/>
+      <path d="M8 13v-2a2 2 0 1 0-4 0v2"/>
+    </g>
+  </g>
+
+  <text x="88" y="318" fill="#F4F4F5" font-family="Be Vietnam Pro" font-size="112" font-weight="700" letter-spacing="-3">BolaPDF</text>
+  <text x="90" y="384" fill="#E4E4E7" font-family="Be Vietnam Pro" font-size="36" font-weight="500">Privacy-first PDF tools that run 100% in your browser.</text>
+
+  <g font-family="Be Vietnam Pro" font-size="23" font-weight="600">
+    <rect x="88" y="428" width="132" height="48" rx="24" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.14"/>
+    <text x="154" y="460" fill="#E4E4E7" text-anchor="middle">Merge</text>
+    <rect x="232" y="428" width="118" height="48" rx="24" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.14"/>
+    <text x="291" y="460" fill="#E4E4E7" text-anchor="middle">Split</text>
+    <rect x="362" y="428" width="164" height="48" rx="24" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.14"/>
+    <text x="444" y="460" fill="#E4E4E7" text-anchor="middle">Compress</text>
+    <rect x="538" y="428" width="102" height="48" rx="24" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.14"/>
+    <text x="589" y="460" fill="#E4E4E7" text-anchor="middle">OCR</text>
+    <rect x="652" y="428" width="140" height="48" rx="24" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.14"/>
+    <text x="722" y="460" fill="#E4E4E7" text-anchor="middle">Protect</text>
+    <rect x="804" y="428" width="124" height="48" rx="24" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.14"/>
+    <text x="866" y="460" fill="#E4E4E7" text-anchor="middle">Sign</text>
+  </g>
+
+  <rect x="88" y="540" width="1024" height="1" fill="#FFFFFF" fill-opacity="0.12"/>
+  <text x="88" y="586" fill="#BBFF00" font-family="Space Mono" font-size="26" font-weight="400">bolapdf.com</text>
+  <text x="1112" y="586" fill="#A1A1AA" font-family="Be Vietnam Pro" font-size="23" font-weight="500" text-anchor="end">No uploads. No sign-up. Files never leave your device.</text>
+</svg>
